@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfolio Site - 박건우 (GeonU Park)
+
+Data Scientist 포트폴리오 사이트. 비즈니스 의사결정에 필요한 질문을 정의하고, 숫자로 답하는 데이터 사이언티스트의 14개 프로젝트 케이스 스터디와 AI Assistant를 제공합니다.
+
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router) + TypeScript
+- **Styling**: Tailwind CSS v4, Geist Sans/Mono
+- **Content**: MDX (`next-mdx-remote/rsc`)
+- **AI Assistant**: OpenAI gpt-4o-mini + text-embedding-3-small (RAG)
+- **Deployment**: Vercel
+
+## Features
+
+- 14개 프로젝트 케이스 스터디 (MDX)
+- AI Assistant - RAG 기반 포트폴리오 챗봇
+- 다크/라이트 테마
+- 반응형 디자인
+- 프로젝트 상세 페이지 목차 (sticky scroll)
+
+## Project Structure
+
+```
+content/projects/     # 14개 프로젝트 MDX 파일
+scripts/              # RAG 인덱스 빌드 스크립트
+src/
+  app/                # Next.js App Router 페이지
+    ai/               # AI Assistant 페이지
+    api/chat/         # Chat API Route
+    projects/         # 프로젝트 목록 및 상세
+    about/            # About 페이지
+    resume/           # 이력서 페이지
+  components/         # React 컴포넌트
+  lib/                # 유틸리티 (MDX 로더, RAG, 타입)
+```
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+http://localhost:3000 에서 확인할 수 있습니다.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## RAG Index
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+AI Assistant는 프로젝트 콘텐츠에서 생성한 벡터 인덱스를 사용합니다. MDX 파일을 수정한 경우 인덱스를 재빌드해야 합니다.
 
-## Learn More
+```bash
+# .env.local에 OPENAI_API_KEY 필요
+node scripts/build-rag-index.mjs
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Environment Variables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| 변수 | 설명 |
+|------|------|
+| `OPENAI_API_KEY` | OpenAI API 키 (AI Assistant용) |

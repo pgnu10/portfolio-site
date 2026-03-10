@@ -1,0 +1,106 @@
+---
+title: "방문객 동선 분석 파이프라인"
+subtitle: "오프라인 매장의 이동 경로를 데이터로 해석하는 시각화 프레임워크"
+period: "2023.06 ~ 2024"
+role: "DA 엔지니어 (단독 설계/구현)"
+company: "메이아이 (mAy-I Inc.)"
+tags: ["동선 분석", "클러스터링", "fastDTW", "시각화", "Sankey Diagram"]
+tldr: "입사 첫 달부터 FlowMap 클래스를 단독 설계하고 3개월간 8버전을 이터레이션. heatmap, journeymap, traffic_map 3개 프로덕션 모듈과 Sankey diagram 시각화까지 확장하여, 오프라인 매장 방문객의 공간 활용 패턴을 정량적으로 분석하는 파이프라인을 구축했다."
+impact:
+  - "3개월 8버전 이터레이션"
+  - "프로덕션 모듈 3종"
+  - "Sankey diagram 배포"
+  - "신세계/LG 등 다수 고객사 적용"
+featured: false
+order: 10
+---
+
+## Executive Summary
+
+| 문제점 | 원인 | 개선 결과 |
+|--------|------|-----------|
+| **방문 밀도만 보는 분석** | 히트맵 하나로는 "어디를 많이 갔다" 수준,<br />이동 순서와 패턴을 놓침 | heatmap + journeymap + traffic_map<br />3종 모듈로 다차원 동선 분석 |
+| **고객사마다 분석 조건이 다름** | 매장 구조, 입구 위치, 층수가 전부 다름 | YAML config 기반 분석 설정,<br />코드 수정 없이 고객사 확장 |
+| **경로 유사도 비교 불가** | 방문자 A와 B의 동선이 "비슷한지"<br />판단할 기준이 없음 | fastDTW 기반 경로 유사도 계산,<br />KMedoids 클러스터링으로 유형 분류 |
+| **구역 간 흐름을 직관적으로 보여줄 수 없음** | 좌표 기반 시각화는 복잡하고<br />비전문가가 읽기 어려움 | Sankey diagram으로 이동 흐름 시각화<br />(2024년 7월 배포) |
+
+**사용 기술**: `Python`, `Pandas`, `NumPy`, `KMedoids`, `fastDTW`, `scipy`, `Matplotlib`, `PIL`, `YAML`
+
+**기여**: FlowMap 프레임워크 단독 설계·구현 / 프로덕션 모듈 3종 개발 / 시퀀스 분석 R&D / Sankey diagram 기획·배포
+
+<div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
+<MetricHighlight value="8버전" label="3개월 이터레이션" description="v1.0 ~ v2.2" />
+<MetricHighlight value="3종" label="프로덕션 모듈" description="heatmap/journey/traffic" />
+<MetricHighlight value="4종" label="거리 지표 지원" description="euclidean/cityblock/cosine/correlation" />
+<MetricHighlight value="2024.07" label="Sankey 배포" description="구역 간 이동 흐름" />
+</div>
+
+## 배경 & 문제 상황
+
+입사 직후인 2023년 6월, 처음 맡은 과제가 동선 분석이었다. 매장에 설치된 카메라로 방문객의 위치 좌표(ESG 좌표)를 수집하고 있었는데, 이 좌표 데이터를 어떻게 "의미 있는 패턴"으로 바꿀 것인지가 문제였다. 단순히 히트맵 하나 그리는 건 어렵지 않다. 하지만 "이 매장에서 방문객이 어떤 순서로 움직이는가", "동선 패턴이 몇 가지 유형으로 나뉘는가" 같은 질문에 답하려면 전혀 다른 접근이 필요했다.
+
+신세계, LG베스트샵 등 고객사마다 매장 구조가 달랐다. 복층 매장은 층별 구역 매핑이 필요하고, 입구 위치도 제각각이다. 분석할 때마다 코드를 수정하는 건 지속 가능하지 않았다. 그리고 솔직히 말하면, 동선 데이터를 시퀀스로 볼 것인지 집계로 볼 것인지부터 확신이 없었다. NMF, DTW, LCSS 같은 시퀀스 분석 기법을 하나씩 실험하면서 방법을 찾아가야 했다.
+
+## My Role and Scope
+
+flow_map 프로토타이핑은 처음부터 끝까지 단독 개발이었다. `flowmap/main.py`, `flowmap/utils.py`, `flowmap/heatmappy.py`를 직접 작성했고, YAML config 체계, CLI(`run.py`/`runs.sh`), 신세계 세그먼트 분석까지 혼자 만들었다. 이후 프로덕션 단계에서는 heatmap, journeymap, traffic_map 모듈 개발과 Sankey diagram 기획을 주도했고, 시퀀스 분석 기법(DTW, LCSS, NMF) 비교 연구도 내가 진행했다. 프론트엔드 시각화 컴포넌트 구현은 프론트엔드팀이 담당했다.
+
+## Approach and Design
+
+### Phase 1: FlowMap 프로토타이핑 (2023.06~09)
+
+2023년 6월 8일에 첫 프로토타입을 시작했다. 3개월 동안 8번의 버전 릴리스를 했는데, 돌이켜보면 이 빠른 이터레이션이 프로젝트의 핵심이었다.
+
+FlowMap 클래스 하나에 전체 파이프라인을 캡슐화했다. 매장 도면 로드, 데이터 필터링(입구/연령/성별), 전처리(padding/time_scaling), 히트맵 생성, KMedoids 클러스터링, 클러스터별 동선 시각화까지. YAML config로 분석 파라미터를 관리해서, 고객사가 바뀌어도 config 파일만 새로 만들면 됐다.
+
+- **v1.0~v1.4** (6~7월): 기본 히트맵과 클러스터링. 입구 설정, 복수 거리 지표 지원
+- **v2.0** (7월 31일): 복층 매장 대응. analyzed_id가 층 번호로 시작하는 규칙(`3층 = 301, 302...`)으로 층별 매핑
+- **v2.1~v2.2** (8월): zone/line 기반 동선 분석, LG베스트샵 대응
+- **09월 04일**: 라이브러리 정리 완료
+
+> **Decision: 클러스터링 알고리즘 선택**
+>
+> **검토한 대안:** KMeans, KMedoids
+> **선택:** KMedoids를 기본으로, KMeans도 지원
+> **근거:** 동선 데이터는 이상치가 많다. 매장에 들어왔다가 바로 나가는 사람, 한 구역에만 30분 머무는 사람 등. KMeans는 이런 이상치에 중심점이 끌려가지만, KMedoids는 실제 데이터 포인트를 중심으로 사용하므로 더 강건하다. 다만 데이터가 30,000건을 넘으면 랜덤 샘플링으로 제한해야 하는 성능 한계는 있었다.
+
+### Phase 2: 프로덕션 모듈 (2023~2024)
+
+프로토타입이 안정되자, 제품에 탑재할 3개 핵심 모듈로 분화시켰다.
+
+**heatmap 모듈**: ESG 좌표 기반 방문 밀도 시각화. visit_count, visitor_count, dwell_time을 0/10/30/60분 interval threshold로 pivot해서 "잠깐 지나간 사람"과 "오래 머문 사람"을 구분할 수 있게 했다.
+
+**journeymap 모듈**: origin에서 current, current에서 lead ESG로 이어지는 이동 경로 추적. tracking_index를 -8~+8 범위로 partitioning하고, fastDTW 알고리즘으로 경로 간 유사도를 계산했다. 정확한 DTW는 O(n^2)인데, fastDTW는 근사치로 속도를 크게 줄여준다. 정확도와 속도 사이의 트레이드오프가 있지만, 실시간 분석이 아닌 배치 분석이라 이 수준이면 충분했다.
+
+**traffic_map 모듈**: start_point/end_point 좌표 기반의 구역 간 이동 동선 시각화. 이 모듈은 "어디서 어디로 갔는가"를 보여주는 데 집중했다.
+
+### Sankey Diagram 과 연관 방문 분석
+
+traffic_map이 좌표 수준의 이동을 보여준다면, Sankey diagram은 구역 단위의 흐름을 한눈에 보여준다. 2024년 7월에 배포했다. 매장 운영자가 "방문객의 30%가 입구에서 A존으로, 거기서 다시 20%가 B존으로 이동한다"는 식의 흐름을 직관적으로 파악할 수 있게 됐다.
+
+연관 방문 분석도 구현했다. 조건부 확률과 Lift Score를 활용해서, "A존을 방문한 사람이 B존도 방문할 확률이 기대치보다 얼마나 높은가"를 계산한다. 이건 e-commerce의 장바구니 분석과 비슷한 로직이다.
+
+## Impact and Outcome
+
+- FlowMap 프로토타이핑 프레임워크를 단독으로 완성하고, 신세계와 LG 등 실제 고객사 데이터에 적용
+- heatmap, journeymap, traffic_map 3개 프로덕션 모듈로 구성된 동선 분석 파이프라인 완성
+- Sankey diagram 기반 시각화를 2024년 7월에 배포해서 구역 간 이동 흐름을 비전문가도 읽을 수 있게 함
+- KMedoids 클러스터링 기반 동선 유형 분류로 방문객 세그먼트별 패턴 분석 가능성 확인 (R&D 단계)
+- 조건부 확률 및 Lift Score 기반 연관 방문 분석을 구현해서 구역 간 연관성 인사이트 제공
+
+가장 큰 배움은 동선 데이터를 단순 집계가 아닌 시퀀스 관점에서 봐야 한다는 것이었다. 그리고 3개월간의 빠른 이터레이션 경험. 완벽한 설계를 먼저 하는 것보다, 실제 고객사 데이터에 빠르게 적용하면서 개선하는 게 훨씬 나았다.
+
+## Technical Appendix
+
+| 구분 | 상세 |
+|------|------|
+| 프레임워크 | FlowMap 클래스 (YAML config 기반) |
+| 클러스터링 | KMedoids (sklearn_extra), KMeans (sklearn) |
+| 거리 지표 | euclidean, cityblock, cosine, correlation |
+| 경로 유사도 | fastDTW (Dynamic Time Warping 근사) |
+| 시퀀스 분석 | NMF, DTW, LCSS 비교 연구 |
+| 시각화 | Matplotlib (LineCollection), PIL (heatmappy), Sankey diagram |
+| 전처리 | padding, time_scaling, minmax 정규화 |
+| 데이터 | ESG 좌표, interval 0/10/30/60분, tracking_index -8~+8 |
+| 인프라 | AWS S3, Clt Backend API |
+| 버전 이력 | v1.0 (2023.06.08) ~ v2.2 (2023.08.17), 라이브러리 정리 (2023.09.04) |

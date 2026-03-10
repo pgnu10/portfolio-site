@@ -1,0 +1,110 @@
+---
+title: "삼성전자 D2C 매장 방문객 분석 PoC"
+subtitle: "Staff Interaction 기반 KPI 6종 설계 및 3차 검증 보고서를 통한 해외 매장 확장"
+period: "2023.11 ~ 2024.10"
+role: "DA / KPI 개발자"
+company: "메이아이 (mAy-I Inc.)"
+tags: ["KPI 설계", "Staff Interaction", "Python", "검증 분석", "D2C 리테일"]
+tldr: "삼성전자 D2C 매장의 방문객 행동을 측정할 KPI가 전무한 상태에서, Staff Interaction 기반 6종 KPI를 Python으로 설계·구현하고 3차에 걸친 검증 분석(34페이지 한영 병기 보고서)으로 데이터 신뢰성을 확보. 결과물은 LG전자 벤치마크 자료로 활용되었고, 뭄바이·런던 해외 매장 배포로 확장."
+impact:
+  - "KPI 6종 신규 설계"
+  - "34p 검증 보고서"
+  - "뭄바이/런던 확장"
+  - "LG 벤치마크 활용"
+featured: false
+order: 7
+---
+
+## Executive Summary
+
+| 문제점 | 원인 | 개선 결과 |
+|--------|------|-----------|
+| D2C 매장 방문객 행동을 정량적으로 측정할 기준 부재 | 매장 특성에 맞는 KPI 체계가 정의되지 않았음 | Staff Interaction 기반 KPI 6종 설계 및 Python 모듈 구현 |
+| Staff-고객 상호작용 데이터의 비즈니스 로직 복잡 | 직원-고객 접촉 판정, 체류 예외, ESG 지표 등 다층적 요구 | 목적별 분석 모듈 4개로 분리, 스펙 변경에 유연하게 대응 |
+| 트래킹 데이터 정합성에 대한 신뢰 부족 | 2인 1인 인식, 동선 누락, 직원 혼입 등 실패 케이스 존재 | 3차 검증 분석으로 실패 유형 분류, 직원 필터링 적용, 34p 보고서 납품 |
+
+**사용 기술**: `Python`, `Pandas`, `mash-admin API`, `Excel/PDF`
+
+**기여**: KPI 체계 기획 / 분석 모듈 개발 / 3차 검증 보고서 작성 / ESG 지표 재설정
+
+<div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
+<MetricHighlight value="6종" label="Staff Interaction KPI" description="product engagement 외 5종" />
+<MetricHighlight value="34p" label="검증 보고서" description="한영 병기, 3차 검증" />
+<MetricHighlight value="2개국" label="해외 배포" description="뭄바이, 런던" />
+<MetricHighlight value="55%" label="샘플링률" description="입장~퇴장 완전 추적" />
+</div>
+
+## Context and Problem
+
+삼성전자 D2C 매장에 방문객 트래킹 솔루션을 도입하는 PoC였다. 문제는 단순했다. 매장에 사람이 얼마나 오는지는 알겠는데, 그래서 뭘 해야 하는지 모르겠다는 거다. 방문객 수만으로는 "이 매장의 직원 응대가 잘 되고 있는가", "어떤 제품 존에서 체험이 일어나고 있는가" 같은 질문에 답할 수가 없었다.
+
+특히 D2C 매장은 일반 소매점과 성격이 다르다. 판매보다 브랜드 체험이 핵심이고, 직원과 고객의 상호작용(Staff Interaction)이 매장 가치의 상당 부분을 차지한다. 그런데 이 상호작용을 정량화한 지표가 아예 없었다. product engagement, pickup lead time, exploration depth, first contact duration, staff workload, culture lab — 이 여섯 가지를 어떻게 숫자로 바꿀 것인가. 이게 핵심 과제였다.
+
+거기에 현실적인 어려움이 겹쳤다. 삼성전자 측의 스펙 변경이 잦았다(Sprint 2024#08 기준으로 꽤 큰 변경이 들어왔다). 중간에 ESG 관련 지표 요구사항도 바뀌었고(Sprint 2024#14), 검증 과정에서 트래킹 데이터 자체의 정합성 문제도 드러났다. 한마디로, 맞추려는 과녁이 계속 움직이고 있었다.
+
+## My Role and Scope
+
+KPI 체계 설계부터 Python 구현, 검증 보고서 작성까지 분석 파이프라인 전체를 담당했다. 구체적으로:
+
+- PoC KPI 리스트업 및 우선순위 설정 (기획)
+- `apple_kpi.py` — Staff Interaction 기반 6종 KPI의 핵심 비즈니스 로직 구현
+- `contents_engagement.py` — 콘텐츠 인게이지먼트 분석
+- `samsung_zone_esg_active_visitor.py` — 구역별 ESG 활성 방문자 분석
+- `excluded_dwell_time.py` — 체류시간 예외 처리
+- 3차 검증 분석 보고서 34페이지 작성 (한영 병기)
+- 삼성전자 무선사업부(2024-06-04), D2C 사업부(2024-06-05) 미팅 참석
+
+플랫폼 API(mash-admin)와 이벤트 수집 파이프라인은 각각 백엔드팀과 데이터 엔지니어링팀이 담당했고, 뭄바이/런던 배포 환경은 DevOps팀이 구축했다.
+
+## Approach and Design
+
+### 목적별 모듈 분리
+
+스펙이 자주 바뀌는 프로젝트에서 하나의 거대한 스크립트를 유지하는 건 자살 행위다. 분석 모듈을 목적별로 분리했다.
+
+- `apple_kpi.py`: Staff Interaction 이벤트 데이터를 받아 6종 KPI를 산출. 프로젝트에서 비즈니스 로직이 가장 복잡한 부분이었다.
+- `contents_engagement.py`: 콘텐츠 존 체험 관련 인게이지먼트 지표.
+- `samsung_zone_esg_active_visitor.py`: 구역별 ESG 기준 활성 방문자 산출. Sprint 2024#14에서 ESG 요구사항이 변경됐을 때 이 모듈만 수정하면 됐다.
+- `excluded_dwell_time.py`: 비정상 체류시간 필터링.
+
+> **Decision: 단일 스크립트 vs 목적별 모듈 분리**
+>
+> **검토한 대안:** 하나의 분석 파이프라인으로 통합 — 초기 개발 속도는 빠르지만 스펙 변경 시 사이드 이펙트 위험
+> **선택:** 목적별 4개 모듈로 분리
+> **근거:** 삼성전자의 스펙 변경 빈도를 고려했을 때, ESG 지표가 바뀌어도 Staff Interaction 로직에 영향이 가면 안 됐다. 실제로 Sprint 2024#14에서 이 판단이 유효했다.
+
+### 3차 검증 분석
+
+삼성 강남 매장에서 mAy-I 트래킹 데이터와 RetailTrend 수치를 비교하는 검증을 세 차례 수행했다.
+
+- **1차** (11.17~11.22): 기본 정합성 확인. 금요일 1,302명, 토요일 1,918명 — 일별 편차가 컸다.
+- **2차** (11.28~11.30): 트래킹 실패 케이스를 세 가지로 분류했다. 두 사람이 하나로 인식되는 경우, 동선 중간 구간이 누락되는 경우, 직원이 방문객으로 잡히는 경우. 유니폼 기반 직원 필터링을 이 시점에 적용했다.
+- **3차** (12.09~12.15): Engagement Ratio 추이 확인. Total Mean이 1차 0.167에서 2차 0.194로, 회차가 진행될수록 개선됐다.
+
+최종 보고서는 34페이지, 한영 병기. 구성은 RetailTrend 비교, 경쟁사 KPI 결과, 추가 KPI 제안 세 파트로 나뉜다. 샘플링률 55%(입장부터 퇴장까지 완전 추적 가능한 방문자 비율)라는 수치를 확보한 것이 데이터 신뢰 확보에 큰 역할을 했다.
+
+### 인구통계와 행동 패턴
+
+검증 과정에서 흥미로운 패턴도 보였다. 방문객 중 남성 비율이 약 68%, 연령대는 20대가 약 60%로 압도적이었다. D2C 매장이라는 특성 — 체험형 공간에 자발적으로 방문하는 사람들의 프로필이 뚜렷했다. 이런 인구통계 데이터는 이후 매장 운영 전략 논의에서 참고 자료로 활용됐다.
+
+## Impact and Outcome
+
+- **KPI 체계 확립**: D2C 매장에 맞는 Staff Interaction 기반 6종 KPI가 정착. product engagement, pickup lead time, exploration depth, first contact duration, staff workload, culture lab 지표가 매장 운영 평가 기준으로 사용되기 시작했다.
+- **벤치마크 활용**: LG전자 HE 벤치마크 내부 자료에서 삼성전자 3차 PoC 인게이지먼트 데이터가 비교 기준으로 활용됐다. 다른 고객사 분석의 참조점이 된 셈이다.
+- **해외 확장**: Sprint 2024#19에서 뭄바이와 런던 매장으로 배포가 확장됐다. PoC가 국내에서 끝나지 않고 글로벌로 이어진 것.
+- **추가 논의**: 무선사업부, D2C 사업부와의 미팅을 통해 후속 확장이 논의됐다.
+
+솔직히 말하면, 이 프로젝트에서 가장 힘들었던 건 기술적 난이도보다 잦은 스펙 변경에 대한 대응이었다. 하지만 모듈 분리 구조 덕분에 변경 범위를 국소화할 수 있었고, 3차 검증이라는 꼼꼼한 과정을 거쳤기에 결과물에 대한 신뢰를 만들 수 있었다.
+
+## Technical Appendix
+
+| 구분 | 상세 |
+|------|------|
+| 핵심 모듈 | `apple_kpi.py`, `contents_engagement.py`, `samsung_zone_esg_active_visitor.py`, `excluded_dwell_time.py` |
+| KPI 종류 | product engagement, pickup lead time, exploration depth, first contact duration, staff workload, culture lab |
+| 검증 대상 | 삼성 강남 매장, mAy-I vs RetailTrend 비교 |
+| 검증 기간 | 1차(11.17~22), 2차(11.28~30), 3차(12.09~15) |
+| 보고서 | 34p, 한영 병기 (RetailTrend 비교 / 경쟁사 KPI / 추가 KPI 제안) |
+| 샘플링률 | 55% (입장~퇴장 전체 추적) |
+| 해외 배포 | 뭄바이, 런던 (Sprint 2024#19) |
+| 플랫폼 연동 | mash-admin API |

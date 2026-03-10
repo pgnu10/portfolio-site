@@ -1,0 +1,98 @@
+---
+title: "범용 DA 파이프라인"
+subtitle: "9개 클라이언트를 단일 코드베이스로 지원하는 데이터 분석 엔진"
+period: "2023 ~ 2026"
+role: "DA 엔지니어 (아키텍처 설계 및 핵심 모듈 개발)"
+company: "메이아이 (mAy-I Inc.)"
+tags: ["데이터 파이프라인", "아키텍처 설계", "Python", "git submodule", "멀티 클라이언트"]
+tldr: "재직 기간 전체에 걸쳐 개발하고 운영한 핵심 데이터 분석 파이프라인. Event/Metric 2계층 구조, lite/smart 이중 모드, 표준 파라미터 인터페이스를 설계하여 Samsung, LG, Genesis 등 9개 클라이언트를 단일 코드베이스로 지원. preprocessor ~1,800줄, processor ~3,400줄의 핵심 엔진을 직접 작성했다."
+impact:
+  - "9개 클라이언트 지원"
+  - "preprocessor 1,800줄"
+  - "processor 3,400줄"
+  - "da-utils 3개 repo 공유"
+featured: false
+order: 12
+---
+
+## Executive Summary
+
+| 문제점 | 원인 | 개선 결과 |
+|--------|------|-----------|
+| **클라이언트마다 코드가 따로** | 고객사별 데이터 구조와 비즈니스 요구가<br />전부 다름, 공통/커스텀 로직 혼재 | Event/Metric 2계층 구조로 분리,<br />client/ 디렉터리에서 커스텀 확장 |
+| **모듈 간 인터페이스 불일치** | 개발자마다 함수 시그니처가 다름,<br />모듈 교체 시 전체 수정 필요 | 표준 인터페이스 `run(events, metadata, constants, config, **kwargs)` 강제 |
+| **공통 유틸리티 코드 중복** | 3개 repository에서 같은 유틸을<br />복붙해서 사용 | da-utils 라이브러리를<br />git submodule로 공유 |
+| **커스텀 이벤트 추가가 느림** | 새 이벤트마다 파이프라인 전체를<br />이해해야 함 | "고속도로" 커스텀 이벤트 파이프라인 도입,<br />빠른 추가 경로 확보 |
+
+**사용 기술**: `Python`, `Pandas`, `NumPy`, `MongoDB`, `AWS S3/DynamoDB`, `PostgreSQL`, `Docker`, `git submodule`
+
+**기여**: 전체 아키텍처 설계 / preprocessor·processor 핵심 엔진 개발 / da-utils 구축 / 9개 클라이언트 확장 모듈
+
+<div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
+<MetricHighlight value="9개" label="클라이언트" description="Samsung/LG/Genesis 등" />
+<MetricHighlight value="~5,200줄" label="핵심 엔진" description="preprocessor + processor" />
+<MetricHighlight value="3개" label="repo 공유" description="da-utils submodule" />
+<MetricHighlight value="3년" label="운영 기간" description="2023~2026 전체 재직" />
+</div>
+
+## 배경 & 문제 상황
+
+이 파이프라인은 재직 기간 내내 함께한 프로젝트다. 메이아이의 DA(Data Analytics) 팀이 하는 일을 한 줄로 요약하면, CCTV에서 수집한 방문객 행동 데이터를 비즈니스 지표로 변환해서 각 고객사에 전달하는 것이다. 문제는 고객사가 한 곳이 아니라 아홉 곳이라는 점이었다.
+
+Samsung, LG Best Shop, Genesis, Hyundai-DP, LG-HE, Fujifilm, DL D-Tower, Lotteworld, Samsungstore. 이 고객사들의 매장 구조, 필요한 지표, 데이터 전송 포맷이 전부 다르다. 처음에는 고객사마다 별도 스크립트를 만드는 식으로 대응했을 텐데, 그러면 공통 로직 수정 시 9곳을 동시에 고쳐야 한다. 반대로 모든 걸 하나로 합치면 한 고객사의 요구사항 변경이 다른 고객사에 영향을 줄 수 있다. 이 긴장감이 아키텍처 설계의 핵심 과제였다.
+
+preprocessor만 약 1,800줄, processor는 약 3,400줄이다. 합치면 5,200줄이 넘는 핵심 엔진을 한 명이 유지보수하는 건 솔직히 부담스러웠다. 그래서 구조를 잘 잡는 게 중요했고, 그 과정에서 내린 아키텍처 결정들이 이 프로젝트의 본질이다.
+
+## My Role and Scope
+
+전체 파이프라인 아키텍처를 내가 설계했다. preprocessor.py(~1,800줄)와 processor.py(~3,400줄)를 직접 작성했고, Event/Metric 2계층 구조, lite/smart 이중 모드, 표준 파라미터 인터페이스, 선언적 Transfer 패턴 모두 내가 제안하고 구현한 것이다. da-utils 라이브러리도 2023년 Sprint #21에서 내가 생성해서, 2024년 Sprint #01에 머지, Sprint #14에 리팩토링 배포까지 관리했다. AWS 인프라, MongoDB/PostgreSQL 운영은 인프라팀, mash-admin API는 백엔드팀, Docker 배포는 DevOps팀이 맡았다.
+
+## Approach and Design
+
+### Event/Metric 2계층 구조
+
+파이프라인의 데이터 흐름은 크게 다섯 단계다: Data Loading, Preprocessing, Identity Processing, Business Logic, Transfer. 이 중 Business Logic 부분을 두 계층으로 나눈 게 핵심이다.
+
+`events/` 디렉터리에서 raw data를 중간 형태로 가공하고, `metrics/` 디렉터리에서 최종 지표를 산출한다. 왜 이렇게 나눴냐면, 같은 중간 데이터로부터 다른 지표를 뽑아야 하는 경우가 많아서다. 예를 들어 "방문 이벤트" 데이터는 방문객 수 지표로도 쓰이고, 체류시간 지표로도 쓰이고, 재방문율 지표로도 쓰인다. 가공과 산출을 분리하면 중복 연산을 줄이면서 각 지표의 로직을 독립적으로 관리할 수 있다.
+
+> **Decision: lite/smart 이중 모드**
+>
+> **검토한 대안:** 단일 모드로 통합, 데이터 소스별 분기 처리
+> **선택:** lite(DAILYIDENTITY 기반)와 smart(GROUPCOMBINING 기반) 이중 모드
+> **근거:** 고객사에 따라 제공되는 데이터 수준이 다르다. 그룹 결합 정보가 있는 고객사는 smart 모드로 더 정교한 분석이 가능하고, 기본 Identity 데이터만 있는 고객사는 lite 모드로 처리한다. 하나의 모드로 억지로 통합하면 모든 코드 경로에 조건문이 늘어나서, 차라리 모드를 분리하는 게 깔끔했다.
+
+### 표준 파라미터 인터페이스
+
+모든 분석 모듈이 `run(events, metadata, constants, config, **kwargs)` 시그니처를 따른다. 이게 사소해 보이지만 9개 클라이언트를 지원하는 데 결정적이었다. 모듈을 교체하거나 새로 추가할 때, 인터페이스만 맞으면 기존 파이프라인에 바로 끼워 넣을 수 있다. `**kwargs`로 확장 포인트도 남겨서 특수 요구사항도 수용 가능하다.
+
+Transfer 단계에서는 선언적 매핑 패턴을 적용했다. 내부에서 쓰는 컬럼명(`visitor_count`, `dwell_time_avg`)과 외부 API가 기대하는 스키마(`visitCount`, `avgDwellTime`)를 딕셔너리 하나로 매핑한다. 새 클라이언트가 추가되면 매핑만 정의하면 되고, Transfer 로직 자체를 건드릴 필요가 없다.
+
+### da-utils와 "고속도로" 패턴
+
+공통 유틸리티 코드를 da-features, da-insights, da-docker 3개 repository에서 공유하기 위해 da-utils 라이브러리를 만들었다. git submodule 방식으로 관리하는데, 솔직히 submodule은 버전 동기화가 번거롭다. 누군가 submodule 업데이트를 잊으면 repository마다 다른 버전을 참조하게 된다. 그래도 코드 중복보다는 낫다는 판단이었고, 실제로 3번의 주요 마일스톤(2023#21 생성, 2024#01 머지, 2024#14 리팩토링 배포)을 거치면서 안정화됐다.
+
+"고속도로" 커스텀 이벤트 파이프라인은 2023년 Sprint #25에서 도입했다. 고객사가 새 지표를 요청하면, 파이프라인 전체를 이해하지 않아도 정해진 경로에 모듈 하나만 추가하면 되는 구조다. 이름이 좀 과장되긴 했는데, 핵심은 진입 장벽을 낮추는 것이었다.
+
+## Impact and Outcome
+
+- Data Loading부터 Transfer까지 표준화된 5단계 파이프라인 아키텍처 확립
+- 9개 클라이언트를 단일 코드베이스로 지원하면서 3년간 안정 운영
+- da-utils 라이브러리로 3개 repository 간 공통 코드 효율 공유
+- "고속도로" 패턴으로 커스텀 이벤트 추가 속도 향상
+- 표준 인터페이스와 선언적 Transfer로 모듈 간 결합도 최소화
+
+3년간 이 파이프라인을 유지보수하면서 느낀 건, 아키텍처 결정은 초기에 내릴수록 좋지만 완벽할 필요는 없다는 것이다. Event/Metric 분리, 표준 인터페이스 같은 큰 방향만 맞추고, 세부적인 건 클라이언트가 추가될 때마다 조정했다. preprocessor 1,800줄과 processor 3,400줄은 여전히 부담스럽지만, 구조가 잡혀 있으니 부분 수정이 전체에 영향을 주는 일은 거의 없었다.
+
+## Technical Appendix
+
+| 구분 | 상세 |
+|------|------|
+| 아키텍처 | Data Loading → Preprocessing → Identity Processing → Business Logic → Transfer |
+| 핵심 엔진 | preprocessor.py (~1,800줄), processor.py (~3,400줄) |
+| 데이터 구조 | Event/Metric 2계층 (events/ → metrics/) |
+| 처리 모드 | lite (DAILYIDENTITY), smart (GROUPCOMBINING) |
+| 인터페이스 | `run(events, metadata, constants, config, **kwargs)` |
+| Transfer | 선언적 매핑 패턴 (내부 컬럼 → API 스키마) |
+| 공통 라이브러리 | da-utils (git submodule, 3개 repo 공유) |
+| 지원 클라이언트 | Samsung, LG Best Shop, Genesis, Hyundai-DP, LG-HE, Fujifilm, DL D-Tower, Lotteworld, Samsungstore |
+| 인프라 | AWS S3, DynamoDB, MongoDB, PostgreSQL, Docker, mash-admin REST API |

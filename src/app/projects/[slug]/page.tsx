@@ -68,10 +68,10 @@ export default async function ProjectPage({
         </div>
       </header>
 
-      {/* TL;DR */}
+      {/* Summary */}
       <div className="rounded-lg border border-accent/30 bg-accent/5 p-5 mb-10">
         <p className="text-xs font-mono text-accent uppercase tracking-wide mb-2">
-          TL;DR
+          요약
         </p>
         <p className="text-sm leading-relaxed">{project.meta.tldr}</p>
       </div>

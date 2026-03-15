@@ -1,106 +1,129 @@
 ---
-title: "방문객 동선 분석 파이프라인"
+title: "Trajectory Analysis Module 설계 및 제품화"
 subtitle: "오프라인 매장의 이동 경로를 데이터로 해석하는 시각화 프레임워크"
-period: "2023.06 ~ 2024"
-role: "DA 엔지니어 (단독 설계/구현)"
+period: "2023.06 ~ 2024.01"
+role: "DA 리드 / 프로덕트 설계/구현"
 company: "메이아이 (mAy-I Inc.)"
-tags: ["동선 분석", "클러스터링", "fastDTW", "시각화", "Sankey Diagram"]
-tldr: "입사 첫 달부터 FlowMap 클래스를 단독 설계하고 3개월간 8버전을 이터레이션. heatmap, journeymap, traffic_map 3개 프로덕션 모듈과 Sankey diagram 시각화까지 확장하여, 오프라인 매장 방문객의 공간 활용 패턴을 정량적으로 분석하는 파이프라인을 구축했다."
+tags: ["동선 분석", "데이터 시각화", "군집 분석", "R&D"]
+tldr: "좌표 로그를 단순 히트맵 집계에서 행동 시퀀스와 구역 간 흐름 분석으로 확장하고, 이를 고객사별 공간 구조에 재사용 가능한 동선 분석 모듈로 제품화한 프로젝트."
 impact:
+  - "3종 시각화 모듈"
+  - "10+개 고객사 적용"
   - "3개월 8버전 이터레이션"
-  - "프로덕션 모듈 3종"
-  - "Sankey diagram 배포"
-  - "신세계/LG 등 다수 고객사 적용"
 featured: false
-order: 10
+order: 5
 ---
 
-## Executive Summary
+## Trajectory Analysis Module 설계 및 제품화
 
-| 문제점 | 원인 | 개선 결과 |
-|--------|------|-----------|
-| **방문 밀도만 보는 분석** | 히트맵 하나로는 "어디를 많이 갔다" 수준,<br />이동 순서와 패턴을 놓침 | heatmap + journeymap + traffic_map<br />3종 모듈로 다차원 동선 분석 |
-| **고객사마다 분석 조건이 다름** | 매장 구조, 입구 위치, 층수가 전부 다름 | YAML config 기반 분석 설정,<br />코드 수정 없이 고객사 확장 |
-| **경로 유사도 비교 불가** | 방문자 A와 B의 동선이 "비슷한지"<br />판단할 기준이 없음 | fastDTW 기반 경로 유사도 계산,<br />KMedoids 클러스터링으로 유형 분류 |
-| **구역 간 흐름을 직관적으로 보여줄 수 없음** | 좌표 기반 시각화는 복잡하고<br />비전문가가 읽기 어려움 | Sankey diagram으로 이동 흐름 시각화<br />(2024년 7월 배포) |
+### 프로젝트 개요
 
-**사용 기술**: `Python`, `Pandas`, `NumPy`, `KMedoids`, `fastDTW`, `scipy`, `Matplotlib`, `PIL`, `YAML`
+<img src="/images/flow_animation.gif" alt="Trajectory Analysis Module 데모" style={{ width: "100%", borderRadius: "8px" }} />
 
-**기여**: FlowMap 프레임워크 단독 설계·구현 / 프로덕션 모듈 3종 개발 / 시퀀스 분석 R&D / Sankey diagram 기획·배포
+기존 히트맵만으로는 방문객이 어디에 머물렀는지는 보여줄 수 있었지만, 어떤 순서로 이동했고 어떤 흐름 패턴을 보였는지는 설명하기 어려웠다.
+좌표 로그를 시퀀스 단위로 재구성해 유사 동선을 분류하는 FlowMap 프로토타입을 설계하고, 고객사별 매장 구조 차이를 YAML config로 일반화한 뒤 heatmap / journeymap / traffic_map으로 제품 모듈화했다.
+동선 데이터를 밀도 중심 분석에서 순서/유형/흐름 분석으로 확장했고, 실제 고객사 데이터에 적용 가능한 재사용형 분석 파이프라인과 프로덕션 모듈 3종을 구축했다.
+
+참고: [메이아이 블로그: 매장 유동인구 데이터, 이렇게 봐야 잘 ‘보입니다’](https://blog.may-i.io/product-mashboard-4/)
+
+### 한눈에 보는 결과
+
+* 좌표 로그를 행동 시퀀스로 해석하는 FlowMap 프로토타입 설계
+* 고객사별 공간 구조 차이를 YAML config로 일반화
+* heatmap / journeymap / traffic_map 3개 프로덕션 모듈로 분화
+* Sankey diagram을 추가해 구역 간 흐름을 비전문가도 읽을 수 있는 형태로 확장
+* KMedoids 기반 동선 유형 분류 실험 및 fastDTW 기반 거리 계산 적용
+* 신세계, 현대이노션 등 복수 고객사 데이터에 적용 가능한 구조 확보
+* 3개월 동안 8회 이터레이션을 거쳐 R&D 결과를 제품 모듈로 정리
+* 좌표 기반 이동 분석을 재사용 가능한 분석 자산으로 전환
 
 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
-<MetricHighlight value="8버전" label="3개월 이터레이션" description="v1.0 ~ v2.2" />
-<MetricHighlight value="3종" label="프로덕션 모듈" description="heatmap/journey/traffic" />
-<MetricHighlight value="4종" label="거리 지표 지원" description="euclidean/cityblock/cosine/correlation" />
-<MetricHighlight value="2024.07" label="Sankey 배포" description="구역 간 이동 흐름" />
+<MetricHighlight value="3종" label="시각화 모듈" description="heatmap / journeymap / traffic_map" />
+<MetricHighlight value="10+개" label="고객사 다수" description="신세계, 현대이노션 등" />
+<MetricHighlight value="3개월" label="집중 이터레이션" description="8회 버전 개선" />
 </div>
 
-## 배경 & 문제 상황
+### 문제점 / 원인 / 개선 결과
 
-입사 직후인 2023년 6월, 처음 맡은 과제가 동선 분석이었다. 매장에 설치된 카메라로 방문객의 위치 좌표(ESG 좌표)를 수집하고 있었는데, 이 좌표 데이터를 어떻게 "의미 있는 패턴"으로 바꿀 것인지가 문제였다. 단순히 히트맵 하나 그리는 건 어렵지 않다. 하지만 "이 매장에서 방문객이 어떤 순서로 움직이는가", "동선 패턴이 몇 가지 유형으로 나뉘는가" 같은 질문에 답하려면 전혀 다른 접근이 필요했다.
+| 문제점                   | 원인                                                     | 개선 결과                                                                     |
+| --------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------- |
+| **히트맵만으로 동선 해석 한계**   | 기존 시각화는 체류 밀도는 보여주지만 이동 순서와 유사 경로 패턴은 설명하지 못했음         | 좌표 로그를 시퀀스로 재구성하고 **journeymap / traffic_map**으로 이동 순서와 흐름을 분석 가능한 구조로 확장 |
+| **고객사별 매장 구조 대응 비효율** | 매장 레이아웃과 구역 정의가 고객사마다 달라 코드 수정 중심으로는 확장성과 재사용성이 낮았음   | 구역, 좌표 범위, 시각화 기준을 **YAML config**로 분리해 고객사별 차이를 설정 기반으로 일반화              |
+| **이상치에 취약한 동선 군집화**   | 짧은 체류, 즉시 이탈, 특정 구역 장기 체류가 중심 궤적을 왜곡해 군집 결과의 대표성이 떨어졌음 | KMeans 대신 **KMedoids**를 채택해 이상치에 더 강건한 동선 유형 분류 구조를 설계                    |
+| **좌표 기반 결과의 전달력 부족**  | 분석 결과가 좌표 시퀀스로만 남으면 비전문가가 읽기 어렵고 고객 커뮤니케이션에 활용하기 어려웠음 | 구역 간 이동을 **Sankey diagram**으로 번역해 흐름을 직관적으로 보여주는 전달 구조를 추가                |
 
-신세계, LG베스트샵 등 고객사마다 매장 구조가 달랐다. 복층 매장은 층별 구역 매핑이 필요하고, 입구 위치도 제각각이다. 분석할 때마다 코드를 수정하는 건 지속 가능하지 않았다. 그리고 솔직히 말하면, 동선 데이터를 시퀀스로 볼 것인지 집계로 볼 것인지부터 확신이 없었다. NMF, DTW, LCSS 같은 시퀀스 분석 기법을 하나씩 실험하면서 방법을 찾아가야 했다.
+### 담당 역할
 
-## My Role and Scope
+<div className="grid grid-cols-1 md:grid-cols-2 gap-8 my-4">
 
-flow_map 프로토타이핑은 처음부터 끝까지 단독 개발이었다. `flowmap/main.py`, `flowmap/utils.py`, `flowmap/heatmappy.py`를 직접 작성했고, YAML config 체계, CLI(`run.py`/`runs.sh`), 신세계 세그먼트 분석까지 혼자 만들었다. 이후 프로덕션 단계에서는 heatmap, journeymap, traffic_map 모듈 개발과 Sankey diagram 기획을 주도했고, 시퀀스 분석 기법(DTW, LCSS, NMF) 비교 연구도 내가 진행했다. 프론트엔드 시각화 컴포넌트 구현은 프론트엔드팀이 담당했다.
+  <div>
+    <span className="font-semibold">주도한 업무</span>
+    <ul className="list-disc ml-5 mt-2">
+      <li>FlowMap 아키텍처 설계 및 프로토타입 구현</li>
+      <li>좌표 로그 기반 시퀀스 분석 프레임 정의</li>
+      <li>YAML config 기반 고객사 일반화 구조 설계</li>
+      <li>KMedoids / DTW / LCSS / NMF 등 동선 분석 R&D 수행</li>
+      <li>heatmap / traffic_map 모듈 설계 및 구현</li>
+      <li>고객사 데이터 적용을 위한 구역 단위 추상화 및 시각화 기준 설계</li>
+      <li>프로토타입 결과를 프로덕션 모듈로 분화하는 구조 설계</li>
+    </ul>
+  </div>
 
-## Approach and Design
+  <div>
+    <span className="font-semibold">협업한 업무</span>
+    <ul className="list-disc ml-5 mt-2">
+      <li>Sankey diagram 기획 및 flow 데이터 구조 설계</li>
+      <li>고객사별 구역 정의 및 데이터 맥락 정렬</li>
+      <li>플랫폼/프론트엔드와 시각화 노출 방식 협의</li>
+      <li>분석 프로젝트에서의 활용 시나리오 점검</li>
+      <li>실제 고객 데이터 적용 과정에서 설정값 검증 및 조정</li>
+    </ul>
+  </div>
+</div>
 
-### Phase 1: FlowMap 프로토타이핑 (2023.06~09)
+## 접근 방식
 
-2023년 6월 8일에 첫 프로토타입을 시작했다. 3개월 동안 8번의 버전 릴리스를 했는데, 돌이켜보면 이 빠른 이터레이션이 프로젝트의 핵심이었다.
+### 1) 좌표 로그를 집계가 아니라 시퀀스로 재해석
 
-FlowMap 클래스 하나에 전체 파이프라인을 캡슐화했다. 매장 도면 로드, 데이터 필터링(입구/연령/성별), 전처리(padding/time_scaling), 히트맵 생성, KMedoids 클러스터링, 클러스터별 동선 시각화까지. YAML config로 분석 파라미터를 관리해서, 고객사가 바뀌어도 config 파일만 새로 만들면 됐다.
+히트맵은 많이 머문 위치는 잘 보여주지만 방문객이 어떤 순서로 공간을 경험했는지는 설명하지 못했다.
+- 좌표 로그를 단순 점 집합으로 보지 않고 시간 순서가 있는 trajectory로 재구성했다.
+- 이후 경로 유사도를 비교할 수 있는 방식이 필요하다고 판단해 DTW, LCSS, NMF 등을 검토했고, 
+- 실제 이동 순서를 보존하면서 비교 가능한 시퀀스 분석 구조를 탐색했다.
 
-- **v1.0~v1.4** (6~7월): 기본 히트맵과 클러스터링. 입구 설정, 복수 거리 지표 지원
-- **v2.0** (7월 31일): 복층 매장 대응. analyzed_id가 층 번호로 시작하는 규칙(`3층 = 301, 302...`)으로 층별 매핑
-- **v2.1~v2.2** (8월): zone/line 기반 동선 분석, LG베스트샵 대응
-- **09월 04일**: 라이브러리 정리 완료
+동선 데이터는 체류 밀도 분석을 넘어 방문 순서와 이동 패턴을 해석할 수 있는 행동 데이터로 확장됐다.
 
-> **Decision: 클러스터링 알고리즘 선택**
->
-> **검토한 대안:** KMeans, KMedoids
-> **선택:** KMedoids를 기본으로, KMeans도 지원
-> **근거:** 동선 데이터는 이상치가 많다. 매장에 들어왔다가 바로 나가는 사람, 한 구역에만 30분 머무는 사람 등. KMeans는 이런 이상치에 중심점이 끌려가지만, KMedoids는 실제 데이터 포인트를 중심으로 사용하므로 더 강건하다. 다만 데이터가 30,000건을 넘으면 랜덤 샘플링으로 제한해야 하는 성능 한계는 있었다.
+### 2) 고객사별 공간 차이를 config 기반으로 일반화
 
-### Phase 2: 프로덕션 모듈 (2023~2024)
+신세계, 현대이노션처럼 고객사마다 구역 구성과 좌표 구조가 달라 코드 수정 중심으로는 확장성이 떨어졌다.
+- 매장별 구역 정의, 좌표 범위, 시각화 기준, 라벨 정보를 코드가 아니라 YAML config로 분리했다.
+- 이를 통해 분석 로직은 공통으로 유지하고, 고객사별 차이는 설정값만 바꿔 대응할 수 있도록 구조를 설계했다.
 
-프로토타입이 안정되자, 제품에 탑재할 3개 핵심 모듈로 분화시켰다.
+동선 분석 모듈은 특정 고객사 전용 코드가 아니라 여러 공간 구조에 적용 가능한 재사용형 파이프라인으로 정리됐다.
 
-**heatmap 모듈**: ESG 좌표 기반 방문 밀도 시각화. visit_count, visitor_count, dwell_time을 0/10/30/60분 interval threshold로 pivot해서 "잠깐 지나간 사람"과 "오래 머문 사람"을 구분할 수 있게 했다.
+### 3) 프로토타입을 질문 중심의 3개 모듈로 분화
 
-**journeymap 모듈**: origin에서 current, current에서 lead ESG로 이어지는 이동 경로 추적. tracking_index를 -8~+8 범위로 partitioning하고, fastDTW 알고리즘으로 경로 간 유사도를 계산했다. 정확한 DTW는 O(n^2)인데, fastDTW는 근사치로 속도를 크게 줄여준다. 정확도와 속도 사이의 트레이드오프가 있지만, 실시간 분석이 아닌 배치 분석이라 이 수준이면 충분했다.
+초기 FlowMap 하나로는 다양한 동선 질문을 모두 담으려다 보니 결과 해석과 활용 방식이 혼재되기 쉬웠다.
+- 고객이 실제로 묻는 질문을 기준으로 기능을 나눴다.
+- `heatmap`은 “어디에 머무르는가”, `journeymap`은 “어떤 순서로 움직이는가”, `traffic_map`은 “어디에서 어디로 이동하는가”에 답하도록 역할을 분리했다.
+실험용 도구 하나를 유지하는 대신, 고객 질문에 맞춰 반복 활용 가능한 분석 모듈 체계를 만들 수 있었다.
 
-**traffic_map 모듈**: start_point/end_point 좌표 기반의 구역 간 이동 동선 시각화. 이 모듈은 "어디서 어디로 갔는가"를 보여주는 데 집중했다.
+## 성과: 좌표 로그 기반 동선 분석을 행동 시퀀스와 흐름 분석으로 확장하고, 이를 재사용 가능한 모듈로 제품화
+* trajectory를 시퀀스 단위로 해석하는 분석 프레임 수립
+* KMedoids 기반 동선 유형화와 fastDTW 기반 거리 계산으로 R&D 검증
+* YAML config 기반 일반화로 고객사별 공간 차이 대응
+* heatmap / journeymap / traffic_map 3종 모듈 프로덕션화
+* Sankey diagram을 통한 흐름 전달력 강화
+* 신세계, 현대이노션 등 복수 고객사 데이터 적용 가능 구조 확보
+* 실험성 높은 분석을 실제 고객 프로젝트에서 재사용 가능한 자산으로 정리
 
-### Sankey Diagram 과 연관 방문 분석
 
-traffic_map이 좌표 수준의 이동을 보여준다면, Sankey diagram은 구역 단위의 흐름을 한눈에 보여준다. 2024년 7월에 배포했다. 매장 운영자가 "방문객의 30%가 입구에서 A존으로, 거기서 다시 20%가 B존으로 이동한다"는 식의 흐름을 직관적으로 파악할 수 있게 됐다.
+### 사용 기술과 역량
+- **사용 기술**: `Python`, `Pandas`, `NumPy`, `YAML`, `Matplotlib / Plotly 계열 시각화`, `KMedoids`, `DTW / fastDTW`, `LCSS`, `NMF`
+* 비정형 좌표 로그를 분석 가능한 행동 시퀀스로 바꾸는 능력
+* 고객사별 차이를 설정 기반으로 일반화하는 파이프라인 설계 능력
+* 알고리즘 실험을 질문 중심의 제품 모듈로 정리하는 능력
+* 복잡한 이동 분석 결과를 비전문가도 이해할 수 있는 시각화로 번역하는 능력
+* R&D 성격의 탐색을 실제 고객 적용 가능한 분석 자산으로 전환하는 실행력
 
-연관 방문 분석도 구현했다. 조건부 확률과 Lift Score를 활용해서, "A존을 방문한 사람이 B존도 방문할 확률이 기대치보다 얼마나 높은가"를 계산한다. 이건 e-commerce의 장바구니 분석과 비슷한 로직이다.
-
-## Impact and Outcome
-
-- FlowMap 프로토타이핑 프레임워크를 단독으로 완성하고, 신세계와 LG 등 실제 고객사 데이터에 적용
-- heatmap, journeymap, traffic_map 3개 프로덕션 모듈로 구성된 동선 분석 파이프라인 완성
-- Sankey diagram 기반 시각화를 2024년 7월에 배포해서 구역 간 이동 흐름을 비전문가도 읽을 수 있게 함
-- KMedoids 클러스터링 기반 동선 유형 분류로 방문객 세그먼트별 패턴 분석 가능성 확인 (R&D 단계)
-- 조건부 확률 및 Lift Score 기반 연관 방문 분석을 구현해서 구역 간 연관성 인사이트 제공
-
-가장 큰 배움은 동선 데이터를 단순 집계가 아닌 시퀀스 관점에서 봐야 한다는 것이었다. 그리고 3개월간의 빠른 이터레이션 경험. 완벽한 설계를 먼저 하는 것보다, 실제 고객사 데이터에 빠르게 적용하면서 개선하는 게 훨씬 나았다.
-
-## Technical Appendix
-
-| 구분 | 상세 |
-|------|------|
-| 프레임워크 | FlowMap 클래스 (YAML config 기반) |
-| 클러스터링 | KMedoids (sklearn_extra), KMeans (sklearn) |
-| 거리 지표 | euclidean, cityblock, cosine, correlation |
-| 경로 유사도 | fastDTW (Dynamic Time Warping 근사) |
-| 시퀀스 분석 | NMF, DTW, LCSS 비교 연구 |
-| 시각화 | Matplotlib (LineCollection), PIL (heatmappy), Sankey diagram |
-| 전처리 | padding, time_scaling, minmax 정규화 |
-| 데이터 | ESG 좌표, interval 0/10/30/60분, tracking_index -8~+8 |
-| 인프라 | AWS S3, Clt Backend API |
-| 버전 이력 | v1.0 (2023.06.08) ~ v2.2 (2023.08.17), 라이브러리 정리 (2023.09.04) |
+---
+*E.O.D*

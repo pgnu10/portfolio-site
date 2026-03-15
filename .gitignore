@@ -42,3 +42,9 @@ next-env.d.ts
 
 GUIDE_*
 /content/projects/*_agent_result.md
+
+# 숨김처리
+HIDDEN_*
+
+# build artifacts
+scripts/_portfolio-preview.html

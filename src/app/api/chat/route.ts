@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { chatWithRAG } from "@/lib/rag";
 
 export async function POST(req: NextRequest) {
-  // Temporarily disabled
-  return NextResponse.json(
-    { reply: "AI Assistant는 현재 준비 중입니다. 곧 만나보실 수 있습니다.", sources: [] }
-  );
+  // // Temporarily disabled
+  // return NextResponse.json(
+  //   { reply: "AI Assistant는 현재 준비 중입니다. 곧 만나보실 수 있습니다.", sources: [] }
+  // );
 
   try {
     const body = await req.json();

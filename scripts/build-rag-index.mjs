@@ -66,7 +66,7 @@ function collectSources() {
   const chunks = [];
 
   // 1. MDX files (strip frontmatter)
-  const mdxFiles = fs.readdirSync(CONTENT).filter((f) => f.endsWith(".mdx"));
+  const mdxFiles = fs.readdirSync(CONTENT).filter((f) => f.endsWith(".mdx") && !f.startsWith("HIDDEN_"));
   for (const file of mdxFiles) {
     const raw = fs.readFileSync(path.join(CONTENT, file), "utf-8");
     const content = raw.replace(/^---[\s\S]*?---\n*/, ""); // strip frontmatter

@@ -1,0 +1,249 @@
+---
+title: "Portfolio AI Assistant (RAG Chatbot)"
+subtitle: "Retrieval-Augmented Generation chatbot design and implementation based on project knowledge"
+period: "2026.03"
+role: "Full-Stack Design/Implementation"
+company: "Personal Project"
+tags: ["LLM/Prompt Engineering", "RAG", "Prototyping"]
+tldr: "Designed and implemented a RAG chatbot enabling natural language exploration of projects and career information on a portfolio site. Extracted 280 chunks from 5 data sources, combining cosine similarity-based vector search with gpt-4o-mini to deliver context-based answers with automatic related project links — an End-to-End system."
+impact:
+  - "280 vector index"
+  - "5 data sources"
+  - "Auto project linking"
+  - "Markdown rendering UX"
+featured: false
+order: 12
+---
+
+## Executive Summary
+
+**Key Questions**:
+- *What interface does a recruiter need to quickly explore 10+ project portfolios?*
+- *Can a practical RAG system be built without an external vector DB?*
+- *Can a production-grade chatbot be created with a cost-efficient LLM combination?*
+
+| Problem | Root Cause | Outcome |
+|---------|-----------|---------|
+| **Burden of exploring 10+ projects** | Visitors had to read every project page individually | Instant portfolio-wide exploration through natural language questions |
+| **Unclear connections between projects** | Individual MDX pages existed in isolation | Automatic related project links based on RAG sources |
+| **Hallucination with standalone LLM** | Model doesn't have project details in training data | Grounded answers based on actual portfolio data via 280-chunk RAG |
+| **Minimize external dependencies** | External DBs like Supabase/pgvector increase operational cost and complexity | Zero external dependencies with in-memory JSON index |
+
+**Technologies**: `Claude Code Agent`, `TypeScript`, `Next.js 16 (App Router)`, `OpenAI API (gpt-4o-mini, text-embedding-3-small)`, `react-markdown`, `Cosine Similarity`, `Node.js fs`
+
+**Contribution**: Problem definition / RAG pipeline design / Chunking strategy / Prompt engineering
+
+<div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
+<MetricHighlight value="280" label="Vector Chunks" description="Extracted from 5 sources" />
+<MetricHighlight value="$0.02" label="Embedding Cost" description="Per 1M tokens" />
+<MetricHighlight value="Top-8" label="Search Results" description="Cosine similarity-based" />
+<MetricHighlight value="0 External DB" label="Infra Dependencies" description="In-memory JSON index" />
+</div>
+
+## Background & Problem
+
+While building my portfolio site, I had one concern:
+"There are 10+ projects each on individual MDX pages — will a recruiter really read through all of them?"
+
+Absolutely not.
+
+Most would skim 2–3 and make a judgment, meaning capabilities demonstrated in the remaining projects stay buried.
+For example, to answer "Has this person actually used LLMs?" they'd need to find and read the "LLM Market Analysis Automation" project.
+But how would a recruiter visiting for the first time know **which capabilities are in which project**?
+
+If there were an interface that sees across the entire portfolio — where a single natural language question surfaces relevant information — that would be far more effective.
+
+At the same time, technical constraints had to be considered. As a personal portfolio site:
+- **Cost**: Must operate on per-query billing with no monthly fixed costs
+- **Infrastructure**: No external vector DBs like Supabase or Pinecone to minimize maintenance burden
+- **Data volume**: 10+ projects + career info is a scale that fits comfortably in memory
+
+## My Role and Scope
+
+**What I did directly:**
+- Designed the entire RAG pipeline architecture
+- Selected data sources and established chunking strategy
+- System prompt engineering (English prompt + Korean response strategy)
+- Debugging and quality improvement (UTF-8 encoding, JSX chunk contamination, prompt caching)
+
+**What Claude Code handled:**
+- JSX stripping logic implementation (removing component tags from MDX)
+- Embedding index build script (`build-rag-index.mjs`, 167 lines)
+- Vector search + LLM response generation backend (`rag.ts`, 131 lines)
+- Next.js API Route design (`route.ts`)
+- Chatbot frontend UI implementation (`ChatInterface.tsx`, 217 lines)
+- Markdown rendering and project source link UX design
+
+---
+---
+
+## Below are detailed implementation notes by the Agent.
+
+---
+
+## Approach and Design
+
+### Overall Architecture
+
+The system divides into **build time** (index creation) and **runtime** (search + response).
+
+**Build Time:**
+1. Collect text from 5 data sources
+2. Strip JSX/HTML tags
+3. Paragraph-based chunking (~500 tokens)
+4. Batch embedding with `text-embedding-3-small`
+5. Save as JSON file (`rag-index.json`, ~9MB, 280 vectors)
+
+**Runtime:**
+1. User question → embed with `text-embedding-3-small`
+2. Compute cosine similarity against 280 chunks
+3. Extract top-8 results + parse project slugs
+4. System prompt + search context + conversation history → `gpt-4o-mini`
+5. Return response text + related project slugs
+6. Frontend renders markdown + displays project links
+
+### Data Source Design
+
+The quality of a RAG system is directly tied to the quality of its searchable data. Which sources to include effectively determines the scope of what the chatbot can answer.
+
+To this end, 5 source types were selected, including internal sources not publicly shown on the portfolio site:
+
+1. **MDX Project Files** (10+): Body text with frontmatter removed. Contains each project's background, approach, and outcomes.
+2. **Normalized Project Overviews** (`normalized/projects/*/overview.md`): Structured summary documents for each project.
+3. **Normalized Role Descriptions** (`normalized/projects/*/my_role.md`): Specific roles and contributions per project.
+4. **Career Description** (`normalized/career/base_career_description.md`): Overall career context and company introductions.
+5. **Strengths/Weaknesses Document** (`normalized/strengths_weaknesses.md`): Self-assessment and growth points.
+
+The reason for including **both** MDX files and normalized documents: MDX content is narrative and detailed but structurally free-form with key information dispersed, while normalized documents are concise and structured but lack context. Indexing both types allows appropriate sources to surface depending on the nature of the question. Questions like "What did you do on the LG project?" (role-focused) vs "What were the technical decisions on the LG project?" (narrative-focused) found good answers from different sources.
+
+### Chunking Strategy
+
+> **Design Decision: Chunking Unit Selection**
+>
+> **Alternatives considered:**
+> - Fixed-length token splitting -- Simple to implement but breaks context mid-sentence
+> - Section (h2) unit splitting -- Preserves semantic units but individual sections can be too long
+>
+> **Choice:** Paragraph-based splitting, ~500 token cap
+>
+> **Rationale:** Portfolio text follows a structure where each paragraph addresses one point. Splitting at paragraph boundaries naturally preserves semantic units, and the 500-token cap maintains embedding quality.
+
+The trickiest part of implementation was **JSX stripping**. MDX files contain React component tags like `<MetricHighlight value="280" label="Vector Chunks" />`. Chunking these as-is causes two problems:
+
+1. **Embedding contamination**: JSX tags dilute the text's meaning, reducing search accuracy
+2. **LLM confusion**: When JSX appears in search results, gpt-4o-mini interprets the content as code snippets and generates "let me explain this code" type responses instead of analytical answers
+
+The `stripJsx()` function removes `<div>` blocks, PascalCase self-closing components (`<MetricHighlight ... />`), HTML tags, and className attributes. This processing alone reduced the index from 289 to 280 chunks, with noticeably improved response quality.
+
+The chunking logic itself splits text by `\n\n` (blank lines) into paragraphs, starting a new chunk when cumulative tokens exceed 500. Token estimation uses `character count × 0.7` — an approximation accounting for Korean 1 char ≈ 1.5 tokens and English 1 word ≈ 1.3 tokens. Running an exact tokenizer would be more precise, but at this scale the approximation was sufficient.
+
+### Vector Search Design
+
+> **Design Decision: Vector Storage Selection**
+>
+> **Alternatives considered:**
+> - Supabase pgvector -- Managed service, monthly fixed cost
+> - Pinecone -- Dedicated vector DB, overkill
+> - SQLite + extensions -- Local but deployment complexity
+>
+> **Choice:** JSON file in-memory load + direct cosine similarity computation
+>
+> **Rationale:** 280 vectors × 1536 dimensions = ~9MB. No burden loading into server memory, and search time is negligible. Completely eliminates external service dependencies while loading the index with a single `fs.readFileSync`. If the index grew to thousands or tens of thousands of entries, a vector DB would be necessary — but at this scale, this was the optimal choice.
+
+Cosine similarity was implemented directly. Even looping through 280 vectors takes only milliseconds, making optimization unnecessary. Top 8 results (topK=8) are extracted — this number was the balance point between gpt-4o-mini's context window (128K) and cost. With an average chunk size of ~300 tokens, ~2,400 tokens are added to context.
+
+The index is cached as a singleton within the server process. The JSON file is read into memory on the first request, and subsequent requests reuse the cached array. Due to how Next.js API Routes work, the `_index` variable persists as long as the server is alive, so file I/O occurs only once.
+
+### Prompt Engineering
+
+The biggest lesson in system prompt design was **separating the prompt language from the response language**.
+
+Initially, the system prompt was written in Korean: "당신은 포트폴리오 도우미입니다. 아래 컨텍스트를 참고하여 한국어로 답변하세요..." The results were disastrous. gpt-4o-mini rejected almost every question with "That information is not included in the portfolio," even when relevant information was clearly present in the context.
+
+Identifying the cause took time. The Korean guardrail phrase ("politely decline unrelated questions") was triggering overly aggressively. Compared to larger models, gpt-4o-mini has weaker instruction following and tended to over-interpret Korean rejection instructions.
+
+The solution was switching the system prompt to **English** while adding only an "Answer in Korean" instruction. English prompts are the language gpt-4o-mini follows most reliably, and rejection scope is maintained more accurately.
+
+Core design principles of the final system prompt:
+
+1. **English prompt + Korean response instruction**: Ensures stable model instruction following
+2. **Direct project list injection**: Explicitly listing 10+ project names and key keywords in the prompt maintains basic context even when search results are insufficient
+3. **Markdown format instruction**: Specifying use of bold, lists, and specific numbers to induce readable answers
+4. **Narrow rejection scope**: Set to reject only questions "completely unrelated to his career (e.g. cooking recipes)"
+
+### Frontend UX Design
+
+Two aspects of the chatbot UI received the most attention.
+
+**Markdown Rendering**: Responses generated by gpt-4o-mini contain markdown syntax like `**bold**`, lists, and code blocks. Showing these as raw text significantly hurts readability. Using the `react-markdown` library, 7 custom components (strong, ul, ol, li, p, code, h3) were defined with Tailwind CSS styles applied.
+
+**Automatic Related Project Links**: Project slugs are extracted from RAG search results and automatically displayed as related project links below assistant responses. Source parsing uses `r.source.match(/^project:(.+)$/)` to extract only sources with the `project:` prefix, deduplicates them, and links to project detail pages. With this feature, "want to learn more about this project" → one click to the corresponding case study.
+
+Additionally, 6 suggested question buttons were placed at the top of the page. Using an event delegation pattern, `data-suggestion` attributes are read to auto-fill the input field. This lowers the entry barrier for first-time recruiters wondering "What should I ask?"
+
+## Debugging Process
+
+The most time-consuming part of this project wasn't writing code — it was debugging. Three issues surfaced in sequence.
+
+### Issue 1: Windows Terminal UTF-8 Encoding
+
+When testing the API with curl during development, Korean questions were transmitted completely garbled. Server logs showed characters like `�ڰǿ�`, and OpenAI embedding results returned nonsensical vectors. English questions worked normally.
+
+The cause was an environment issue where UTF-8 encoding wasn't properly transmitted when using curl in Windows Git Bash. It wasn't a code bug. After confirming normal operation in the browser, I moved on — but spent considerable time needlessly debugging code before reaching that conclusion.
+
+### Issue 2: JSX Tag Contamination of RAG Chunks
+
+When JSX tags like `<MetricHighlight value="40 pages" label="Analysis/Strategy Proposals" />` were included in chunks as-is from MDX files, gpt-4o-mini generated responses like "Let me analyze this code block" instead of portfolio content. The model misidentified the context as code documentation.
+
+Adding the `stripJsx()` function to the build script removed 4 patterns (div blocks, PascalCase self-closing tags, HTML tags, className attributes) and rebuilt the index. Chunks decreased from 289 → 280, with immediate improvement in response quality.
+
+### Issue 3: OpenAI Prompt Caching
+
+There was a phenomenon where responses didn't change even after modifying the system prompt. Discovering `cached_tokens: 2816` in the server response revealed that OpenAI was caching identical system prompts. Resolved by restarting the Next.js server + deleting the `.next` cache, but this taught the lesson that cache invalidation must be considered when testing immediately after prompt changes.
+
+## Cost Analysis
+
+Cost minimization was a core constraint from the initial design phase.
+
+| Component | Model | Unit Price | Notes |
+|-----------|-------|-----------|-------|
+| Embedding (build) | text-embedding-3-small | $0.02 / 1M tokens | One-time cost during index build |
+| Embedding (runtime) | text-embedding-3-small | $0.02 / 1M tokens | ~50 tokens per question |
+| Response generation | gpt-4o-mini | $0.15 / 1M (input) | System prompt + context |
+| Response generation | gpt-4o-mini | $0.60 / 1M (output) | ~300 token response |
+
+Estimated cost per query: **under ~$0.001** (system prompt ~500 tokens + context ~2,400 tokens + question ~50 tokens + response ~300 tokens). Even with 1,000 monthly queries, operational cost stays under $1. With no external vector DB, fixed infrastructure cost is zero.
+
+## Impact and Outcome
+
+This project delivered three direct effects.
+
+First, **a qualitative shift in portfolio exploration**. Instead of reading 10+ projects one by one, a single-line question like "Do you have LLM experience?" now returns a summary of 3–4 relevant projects' key content. With related project links provided automatically, visitors can efficiently deep-dive only into projects of interest.
+
+Second, **empirical demonstration of technical capabilities**. RAG, embeddings, prompt engineering, LLM pipeline design — there's a difference in persuasiveness between listing keywords on a resume and showing a working system. In particular, it demonstrates that experience gained from the LLM Market Analysis Automation project (multi-LLM strategy, prompt design, quality management) applies consistently even in this smaller project.
+
+Third, **proof of cost-efficient architecture design capability**. A production-grade RAG system was implemented with no external vector DB (in-memory JSON), using the lowest-cost model combination (text-embedding-3-small + gpt-4o-mini). "Finding practical solutions within constraints" is the message running through this entire portfolio, and this project serves as its live demo.
+
+## Limitations and Lessons Learned
+
+**Limitations:**
+- **In-memory index scaling limits**: 280 vectors are fine, but growing to thousands or more creates bottlenecks in JSON file load time and memory usage. At that point, migration to a vector DB would be necessary.
+- **Conversation context limitations**: Full conversation history is passed to the LLM each time, but in long conversations token costs accumulate and older context gets diluted. No conversation summarization or sliding window strategy exists.
+- **Embedding-dependent search quality**: Searching by cosine similarity alone can be weak for exact keyword matching (e.g., specific technology names). Introducing hybrid search (vector + BM25) could improve this.
+- **No real-time data reflection**: The index is generated at build time, so MDX file modifications aren't reflected without rebuilding the index.
+
+**If I did it again:**
+- Would implement streaming responses (Server-Sent Events). Currently the entire response appears at once after completion — token-level streaming would significantly reduce perceived response time.
+- Would add a "low confidence" indicator based on search result similarity scores. When all chunks have low similarity (e.g., below 0.3), passing the question to the LLM without context increases hallucination risk — pre-emptive blocking logic would be safer.
+- Would collect user question logs to build a feedback loop analyzing frequently asked questions and answer quality. Quantitatively understanding where RAG works well and where it fails is necessary for continuous improvement.
+
+## Technical Appendix
+
+**Technologies**: `Claude Code`, `TypeScript`, `Next.js 16 (App Router)`, `OpenAI API (gpt-4o-mini, text-embedding-3-small)`, `react-markdown`, `Node.js fs`, `Cosine Similarity`
+
+**Core Code Modules**:
+- `build-rag-index.mjs` : 5-source data collection, JSX stripping, paragraph-based chunking, batch embedding, JSON index generation
+- `rag.ts` : Index loading (singleton), cosine similarity search, project slug extraction, gpt-4o-mini response generation
+- `route.ts` : POST API Route Handler
+- `ChatInterface.tsx` : react-markdown rendering, project source links, suggested question event delegation
+- `page.tsx` : AI Assistant page, 6 suggested question grid

@@ -1,6 +1,7 @@
 import Link from "next/link";
+import type { Locale } from "@/lib/i18n";
 
-export function Footer() {
+export function Footer({ locale }: { locale: Locale }) {
   return (
     <footer className="border-t border-border mt-auto">
       <div className="mx-auto max-w-6xl px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
@@ -17,7 +18,7 @@ export function Footer() {
           <Link href="mailto:afnf33@gmail.com" className="hover:text-foreground transition-colors">
             Email
           </Link>
-          <Link href="/resume" className="hover:text-foreground transition-colors">
+          <Link href={`/${locale}/resume`} className="hover:text-foreground transition-colors">
             Resume
           </Link>
         </div>

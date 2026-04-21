@@ -1,0 +1,132 @@
+---
+title: "Streamlit-Based Analysis Prototyping System"
+subtitle: "Conversion/funnel/trade area/anomaly/marketing — 6 analysis dashboards rapidly implemented and validated to MVP"
+period: "2024 ~ 2025"
+role: "Analysis Logic Design & Development"
+company: "mAy-I Inc."
+tags: ["Funnel Analysis", "Anomaly Detection", "Data Visualization", "Prototyping"]
+tldr: "Designed 6 Streamlit-based interactive analysis prototypes addressing different question types to rapidly validate analysis ideas before product integration."
+impact:
+  - "6 dashboards built"
+  - "9 anomaly detection algorithms"
+  - "Hybrid funnel algorithm"
+featured: false
+order: 10
+---
+
+## Streamlit-Based Analysis Prototyping System
+
+## Project Overview
+
+<img src="/images/Streamlit_sample.png" alt="Streamlit-Based Analysis Prototyping System" style={{ width: "100%", borderRadius: "8px" }} />
+
+Even when new analysis ideas emerged, passing them directly to product development was costly, and validating actual utility and presentation through words or documents alone was difficult.
+Built a system for validating analysis logic and UI together by implementing recurring questions — conversion rate analysis, free funnel, trade area analysis, anomaly detection, marketing before/after comparison, period comparison — as Streamlit prototypes.
+Established a common foundation for rapidly experimenting with analysis ideas through code and screens; some prototypes were later used as starting points for operational reports, follow-up projects, and product feature reviews.
+
+### Results at a Glance
+* Built Streamlit-based prototyping system for validating analysis ideas before product integration
+* Designed and implemented 6 analysis tools differentiated by question type
+* Implemented 2-10 step path exploration structure for free funnel analysis
+* Designed custom funnel algorithm supporting strict/non-strict modes
+* Built trade area analysis prototype integrating 2 Seoul public data APIs
+* Established comparison environment for 9 anomaly detection algorithms
+* Incorporated MDE/odds ratio/p-value/confidence interval interpretation framework for marketing before/after comparison
+* Connected some prototypes to KPI anomaly detection operational system and follow-up analysis projects
+
+<div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
+<MetricHighlight value="6 Types" label="Analysis Tools" description="Conversion/funnel/trade area/anomaly/marketing/period comparison" />
+<MetricHighlight value="2" label="Seoul Public Data APIs" description="Living population/trade area revenue data" />
+<MetricHighlight value="9 Types" label="Anomaly Detection Algorithms" description="IQR/ZScore/MAD/Hampel/Bollinger/Weekday/YoY, etc." />
+<MetricHighlight value="4" label="Marketing Comparison Framework" description="MDE/odds ratio/p-value/confidence interval" />
+</div>
+
+---
+
+| Problem | Root Cause | Outcome |
+|---------|-----------|---------|
+| **No means to validate analysis ideas** | No environment existed for rapidly testing actual screens and calculation structures at the pre-product development stage | Built **Streamlit-based analysis prototyping system** enabling immediate idea validation |
+| **Different interfaces needed per question** | Conversion analysis, external trade area integration, anomaly detection, and marketing effect comparison each required different calculation methods and UX | Differentiated into **6 analysis tools** with purpose-specific interfaces for each problem |
+| **Computational cost of complex path analysis** | Free funnel performance degraded with naive iterative computation as steps and conditions increased | Designed NumPy-based `user_step_matrix` structure and hybrid algorithm to **improve free funnel exploration speed** |
+| **Weak connection between experiments and operations** | Prototypes ending as one-off demos were difficult to retain as organizational assets | Connected anomaly detection/trade area tools to follow-up operational reports, feature reviews, and project expansion |
+
+---
+
+### My Role
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-8 my-4">
+  <div>
+    <span className="font-semibold">Led</span>
+    <ul className="list-disc ml-5 mt-2">
+      <li>Streamlit-based analysis prototyping direction setting</li>
+      <li>Sole development of 3 prototype designs and implementations</li>
+      <li>External API integration architecture for trade area analysis</li>
+      <li>Statistical interpretation framework for marketing before/after comparison</li>
+      <li>Question definition, result presentation, and interaction UX design for each prototype</li>
+      <li>Direction for connecting prototype results to follow-up analysis/operational projects</li>
+    </ul>
+  </div>
+  <div>
+    <span className="font-semibold">Collaborated</span>
+    <ul className="list-disc ml-5 mt-2">
+      <li>Anomaly detection dashboard framework collaboration</li>
+      <li>Free funnel algorithm design and performance improvement</li>
+      <li>Detector comparison visualization structure and UX design</li>
+      <li>Period comparison and conversion rate analysis screen composition</li>
+      <li>Common data structure and result display alignment</li>
+      <li>Utilization direction for follow-up operational reports and feature reviews</li>
+    </ul>
+  </div>
+</div>
+
+---
+
+## Approach
+
+### 1) Built Environment for Directly Validating Analysis Ideas Before Product Integration
+
+Even when new analysis perspectives emerged, requesting development directly was costly and documents alone couldn't sufficiently verify actual utility and presentation.
+- Chose Streamlit as the experimentation tool, prioritizing validation speed over production polish.
+- The key wasn't building many dashboards but rapidly converting analysis ideas into working screens as standards for internal review and discussion.
+- Organized frequently recurring question types first, then implemented each as a small prototype with appropriate calculation structures and interactions.
+
+Created a common experimentation foundation for rapidly validating analysis ideas through code and screens rather than verbal explanation.
+
+### 2) Combined External Data for Questions Internal Data Alone Couldn't Answer
+
+When interpreting store visit changes or trade area characteristics, internal visit data alone often couldn't sufficiently explain causes.
+- Built a trade area analysis prototype integrating Seoul public data APIs to query living population and trade area data together.
+- Configured internal visit patterns and external living area flows to be comparable on a single screen.
+- Enabled interpretation of surrounding context beyond just store phenomena.
+
+Rapidly validated the possibility of combining external context for questions internal metrics alone couldn't answer.
+
+### 3) Used Prototypes as Testing Grounds for Follow-Up Operations and Feature Reviews
+
+If prototypes end as one-off demos, they're difficult to retain as organizational assets and disconnected from follow-up projects, their experimental cost exceeds their value.
+- In the anomaly detection dashboard, enabled comparison of 9 detectors on the same screen to review which algorithms suit which patterns at the pre-operational stage.
+- In the marketing before/after comparison dashboard, provided interpretation criteria like t-test, MDE, and odds ratio to experiment with judgment structures needed for decision-making beyond simple numerical comparison.
+
+Prototypes functioned as validation environments for follow-up system design and operational judgment, beyond one-off experiments.
+
+## Outcome: Converted Analysis Ideas into Rapidly Validatable Interactive Tools, Connected to Follow-Up Operations and Feature Reviews
+* Established common prototyping foundation for analysis idea validation
+* Designed and implemented 6 prototypes differentiated by question type
+* Supported complex path analysis with custom funnel algorithm
+* Validated interpretive expansion through external trade area data combination
+* Connected anomaly detection algorithm comparison environment to follow-up operational system
+* Experimented with statistics-based interpretation framework for marketing before/after comparison
+* Established workflow where analysts directly validate UI and calculation structures together
+* Secured criteria distinguishing prototype and production role boundaries
+
+## Technologies & Capabilities
+
+- **Tech Stack**: `Python`, `Streamlit`, `NumPy`, `Pandas`, `SciPy`, `scikit-learn`, `REST API`, `Statistical Testing`, `A/B Test Interpretation`, `Anomaly Detection`
+- Ability to rapidly convert analysis ideas into validatable interactive tools
+- Ability to design calculation structures and UX matching question types
+- Ability to solve complex path analysis problems with custom algorithms
+- Ability to extend interpretive power by combining internal and external data
+- Execution ability to connect highly experimental prototypes to follow-up operations and feature reviews
+
+---
+*E.O.D*

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import type { Project } from "@/lib/types";
+import type { Locale } from "@/lib/i18n";
 
-export function ProjectCard({ project }: { project: Project }) {
+export function ProjectCard({ project, locale = "ko" }: { project: Project; locale?: Locale }) {
   return (
-    <Link href={`/projects/${project.slug}`} className="group block">
+    <Link href={`/${locale}/projects/${project.slug}`} className="group block">
       <article className="rounded-lg border border-border bg-card p-6 transition-all duration-200 hover:border-accent/40 hover:shadow-sm">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex flex-wrap gap-1.5">

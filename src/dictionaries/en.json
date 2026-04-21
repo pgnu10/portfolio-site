@@ -1,0 +1,78 @@
+{
+  "nav": {
+    "home": "Home",
+    "projects": "Projects",
+    "about": "About",
+    "resume": "Resume",
+    "ai": "AI"
+  },
+  "home": {
+    "role": "Data Scientist",
+    "heroTitle1": "I define the right questions",
+    "heroTitle2": "for business decisions, and ",
+    "heroTitleAccent": "answer them with numbers.",
+    "heroDesc": "Led data analysis and insight delivery for major enterprise clients including LG Electronics, Samsung, and Hyundai Department Store at an offline retail visitor behavior analytics SaaS platform.",
+    "heroDesc2": "I transform ambiguous business needs into structured analytical frameworks and design end-to-end analysis pipelines to support client decision-making.",
+    "competencies": ["Problem Framing & Framework Design", "End-to-End Analysis Pipeline", "KPI/Metric Design", "LLM/Prompt Engineering"],
+    "profileAlt": "GeonU Park profile photo",
+    "stats": [
+      { "value": "3+ Years", "label": "Years Experience", "desc": "Offline behavior data analytics" },
+      { "value": "10+ Clients", "label": "Client Projects", "desc": "LG, Samsung, Hyundai, Shinsegae" },
+      { "value": "15+ Projects", "label": "End-to-End Projects", "desc": "From pipeline design to presentation" },
+      { "value": "30+ KPIs", "label": "KPI Development", "desc": "Core metric design & development" }
+    ],
+    "featuredTitle": "Featured Projects",
+    "viewAll": "View all"
+  },
+  "about": {
+    "title": "About",
+    "subtitle": "GeonU Park | Data Scientist (DA Team Lead) | mAy-I Inc.",
+    "profileTitle": "Profile",
+    "education": "Korea University | Major: Psychology, Convergence: Language, Brain & Computer",
+    "totalExp": "Total Experience",
+    "domain": "Offline retail visitor behavior analytics",
+    "certs": "Business Information Visualization, Big Data Analyst, SQLD, ADsP",
+    "languages": "OPIC: IH, TOEIC: 920, JLPT: N2",
+    "profileDesc": "Joined mAy-I as its first Data Analyst and grew the team from 0 to 3 members. Analyzed offline store visitor behavior data for major retail enterprises including LG Electronics, Samsung, Hyundai Department Store, and Shinsegae. Worked directly with client stakeholders to identify field problems and solve them with data and AI solutions. Led all aspects of DA work: analysis pipeline design, custom KPI development, client report production, and AI model quality management.",
+    "skillsTitle": "Skills",
+    "timelineTitle": "Timeline",
+    "labels": {
+      "education": "Education",
+      "experience": "Total Experience",
+      "domain": "Core Domain",
+      "certs": "Certifications",
+      "languages": "Languages"
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "desc": "Key case studies from end-to-end data analysis projects I personally led.",
+    "summary": "Summary",
+    "backToAll": "← Back to all projects"
+  },
+  "resume": {
+    "title": "Resume & Portfolio",
+    "desc": "Download my resume and portfolio PDF.",
+    "resumeTitle": "Resume",
+    "resumeDesc": "Career description & resume",
+    "portfolioTitle": "Portfolio",
+    "portfolioDesc": "Key project case studies",
+    "download": "Download",
+    "quickSummary": "Quick Summary"
+  },
+  "ai": {
+    "title": "AI Assistant",
+    "desc": "Ask me anything about my portfolio. I answer based on project cases and career information.",
+    "suggestions": [
+      "What projects has GeonU worked on?",
+      "What were the key results of the LG project?",
+      "Do you have experience with LLMs?",
+      "How did you design the anomaly detection system?",
+      "What analytics capabilities have you developed?",
+      "What's your strongest tech stack?"
+    ]
+  },
+  "footer": {
+    "copyright": "2026 GeonU Park. Data Scientist."
+  }
+}

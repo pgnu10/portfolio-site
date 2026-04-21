@@ -1,0 +1,128 @@
+---
+title: "Trajectory Analysis Module Design & Productization"
+subtitle: "Visualization framework for interpreting offline store movement paths as data"
+period: "2023.06 ~ 2024.01"
+role: "DA Lead / Product Design & Implementation"
+company: "mAy-I Inc."
+tags: ["Trajectory Analysis", "Data Visualization", "Cluster Analysis", "R&D"]
+tldr: "Extended coordinate logs from simple heatmap aggregation to behavioral sequence and inter-zone flow analysis, productizing them into a reusable trajectory analysis module adaptable to each client's spatial structure."
+impact:
+  - "3 visualization modules"
+  - "10+ client applications"
+  - "3-month 8-version iteration"
+featured: false
+order: 5
+---
+
+## Trajectory Analysis Module Design & Productization
+
+### Project Overview
+
+<img src="/images/flow_animation.gif" alt="Trajectory Analysis Module demo" style={{ width: "100%", borderRadius: "8px" }} />
+
+Existing heatmaps could show where visitors lingered but couldn't explain in what order they moved or what flow patterns they exhibited.
+I designed a FlowMap prototype that reconstructs coordinate logs into sequence units and classifies similar trajectories, generalized per-client store structure differences via YAML config, then productized into heatmap / journeymap / traffic_map modules.
+Extended trajectory data from density-focused analysis to sequence/type/flow analysis, building 3 production modules and a reusable analysis pipeline applicable to actual client data.
+
+Reference: [mAy-I Blog: How to Really 'See' Store Foot Traffic Data](https://blog.may-i.io/product-mashboard-4/)
+
+### Results at a Glance
+
+* Designed FlowMap prototype interpreting coordinate logs as behavioral sequences
+* Generalized per-client spatial structure differences via YAML config
+* Differentiated into 3 production modules: heatmap / journeymap / traffic_map
+* Extended with Sankey diagrams making inter-zone flows readable for non-experts
+* KMedoids-based trajectory type classification and fastDTW distance calculation experiments
+* Secured structure applicable to multiple clients including Shinsegae and Hyundai Innocean
+* Refined R&D results into product modules through 8 iterations over 3 months
+* Converted coordinate-based movement analysis into reusable analytical assets
+
+<div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
+<MetricHighlight value="3 Types" label="Visualization Modules" description="heatmap / journeymap / traffic_map" />
+<MetricHighlight value="10+" label="Multiple Clients" description="Shinsegae, Hyundai Innocean, etc." />
+<MetricHighlight value="3 Months" label="Focused Iteration" description="8 version improvements" />
+</div>
+
+### Problem / Root Cause / Outcome
+
+| Problem | Root Cause | Outcome |
+|---------|-----------|---------|
+| **Heatmap-only trajectory interpretation limits** | Existing visualization showed dwell density but couldn't explain movement order or similar path patterns | Reconstructed coordinate logs as sequences, extending to **journeymap / traffic_map** structure enabling order and flow analysis |
+| **Inefficient per-client store adaptation** | Store layouts and zone definitions differed by client; code-modification-centric approach had low scalability and reusability | Separated zones, coordinate ranges, and visualization criteria into **YAML config** for settings-based generalization |
+| **Trajectory clustering vulnerable to outliers** | Short stays, immediate exits, and prolonged single-zone stays distorted central trajectories, reducing cluster representativeness | Adopted **KMedoids** instead of KMeans for outlier-robust trajectory type classification |
+| **Poor communicability of coordinate-based results** | Results remaining as coordinate sequences were hard for non-experts to read and difficult to use in client communication | Added **Sankey diagram** translating inter-zone movement into intuitive flow visualization |
+
+### My Role
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-8 my-4">
+
+  <div>
+    <span className="font-semibold">Led</span>
+    <ul className="list-disc ml-5 mt-2">
+      <li>FlowMap architecture design and prototype implementation</li>
+      <li>Coordinate log-based sequence analysis frame definition</li>
+      <li>YAML config-based client generalization structure design</li>
+      <li>KMedoids / DTW / LCSS / NMF trajectory analysis R&D</li>
+      <li>Heatmap / traffic_map module design and implementation</li>
+      <li>Zone-level abstraction and visualization criteria design for client data application</li>
+      <li>Structure design for differentiating prototype results into production modules</li>
+    </ul>
+  </div>
+
+  <div>
+    <span className="font-semibold">Collaborated</span>
+    <ul className="list-disc ml-5 mt-2">
+      <li>Sankey diagram planning and flow data structure design</li>
+      <li>Per-client zone definition and data context alignment</li>
+      <li>Visualization display method coordination with platform/frontend</li>
+      <li>Usage scenario review in analysis projects</li>
+      <li>Setting value verification and adjustment during actual client data application</li>
+    </ul>
+  </div>
+</div>
+
+## Approach
+
+### 1) Reinterpreted Coordinate Logs as Sequences, Not Aggregations
+
+Heatmaps show frequently visited locations well but cannot explain in what order visitors experienced the space.
+- Viewed coordinate logs not as simple point sets but reconstructed them as time-ordered trajectories.
+- Then determined a method for comparing path similarity was needed, reviewing DTW, LCSS, NMF, and others.
+- Explored sequence analysis structures that preserve actual movement order while enabling comparison.
+
+Trajectory data was extended beyond dwell density analysis to behavioral data interpretable for visit order and movement patterns.
+
+### 2) Generalized Per-Client Spatial Differences via Config
+
+Clients like Shinsegae and Hyundai Innocean had different zone compositions and coordinate structures, making code-modification-based approaches poorly scalable.
+- Separated per-store zone definitions, coordinate ranges, visualization criteria, and label information into YAML config rather than code.
+- This allowed maintaining common analysis logic while adapting to per-client differences through settings changes alone.
+
+The trajectory analysis module was organized not as client-specific code but as a reusable pipeline applicable to multiple spatial structures.
+
+### 3) Differentiated Prototype into 3 Question-Focused Modules
+
+The initial single FlowMap tried to answer all trajectory questions, making result interpretation and usage methods easy to conflate.
+- Divided functionality based on the questions clients actually ask.
+- `heatmap` answers "where do they stay," `journeymap` answers "in what order do they move," and `traffic_map` answers "where do they go from where."
+Instead of maintaining a single experimental tool, I created an analysis module system repeatedly usable aligned to client questions.
+
+## Outcome: Extended Coordinate Log-Based Trajectory Analysis to Behavioral Sequences and Flow Analysis, Productized into Reusable Modules
+* Established analysis frame interpreting trajectories at the sequence level
+* R&D validation with KMedoids-based trajectory typing and fastDTW distance calculation
+* YAML config-based generalization addressing per-client spatial differences
+* Productized 3 modules: heatmap / journeymap / traffic_map
+* Enhanced flow communicability through Sankey diagrams
+* Secured structure applicable to multiple client data (Shinsegae, Hyundai Innocean, etc.)
+* Organized highly experimental analysis into reusable assets for actual client projects
+
+### Technologies & Capabilities
+- **Tech Stack**: `Python`, `Pandas`, `NumPy`, `YAML`, `Matplotlib / Plotly visualization`, `KMedoids`, `DTW / fastDTW`, `LCSS`, `NMF`
+* Ability to transform unstructured coordinate logs into analyzable behavioral sequences
+* Pipeline design ability to generalize per-client differences through configuration
+* Ability to organize algorithmic experiments into question-focused product modules
+* Ability to translate complex movement analysis results into visualizations non-experts can understand
+* Execution ability converting R&D exploration into analysis assets applicable to actual clients
+
+---
+*E.O.D*

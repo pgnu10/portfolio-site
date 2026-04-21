@@ -2,20 +2,28 @@ import { notFound } from "next/navigation";
 import { getProjectBySlug, getAllProjectSlugs } from "@/lib/projects";
 import { MdxRenderer } from "@/components/MdxRenderer";
 import { TableOfContents } from "@/components/TableOfContents";
+import { getDictionary, locales } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
 import Link from "next/link";
 import type { Metadata } from "next";
 
 export async function generateStaticParams() {
-  return getAllProjectSlugs().map((slug) => ({ slug }));
+  const params: { locale: string; slug: string }[] = [];
+  for (const locale of locales) {
+    for (const slug of getAllProjectSlugs(locale)) {
+      params.push({ locale, slug });
+    }
+  }
+  return params;
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
-  const project = getProjectBySlug(slug);
+  const { locale, slug } = await params;
+  const project = getProjectBySlug(slug, locale as Locale);
   if (!project) return { title: "Not Found" };
   return {
     title: project.meta.title,
@@ -26,18 +34,19 @@ export async function generateMetadata({
 export default async function ProjectPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
-  const project = getProjectBySlug(slug);
+  const { locale, slug } = await params;
+  const t = await getDictionary(locale as Locale);
+  const project = getProjectBySlug(slug, locale as Locale);
   if (!project) notFound();
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-16">
       {/* Breadcrumb */}
       <nav className="text-sm text-muted-foreground mb-8">
-        <Link href="/projects" className="hover:text-foreground transition-colors">
-          Projects
+        <Link href={`/${locale}/projects`} className="hover:text-foreground transition-colors">
+          {t.projects.title}
         </Link>
         <span className="mx-2">/</span>
         <span className="text-foreground">{project.meta.title}</span>
@@ -71,7 +80,7 @@ export default async function ProjectPage({
       {/* Summary */}
       <div className="rounded-lg border border-accent/30 bg-accent/5 p-5 mb-10">
         <p className="text-xs font-mono text-accent uppercase tracking-wide mb-2">
-          요약
+          {t.projects.summary}
         </p>
         <p className="text-sm leading-relaxed">{project.meta.tldr}</p>
       </div>
@@ -101,10 +110,10 @@ export default async function ProjectPage({
       {/* Navigation */}
       <div className="mt-16 pt-8 border-t border-border">
         <Link
-          href="/projects"
+          href={`/${locale}/projects`}
           className="text-sm text-accent hover:underline"
         >
-          &larr; Back to all projects
+          {t.projects.backToAll}
         </Link>
       </div>
     </div>

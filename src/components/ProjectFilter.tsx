@@ -2,9 +2,10 @@
 
 import { useState, useMemo } from "react";
 import type { Project } from "@/lib/types";
+import type { Locale } from "@/lib/i18n";
 import { ProjectCard } from "./ProjectCard";
 
-export function ProjectFilter({ projects }: { projects: Project[] }) {
+export function ProjectFilter({ projects, locale = "ko" }: { projects: Project[]; locale?: Locale }) {
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
 
   const allTags = useMemo(() => {
@@ -74,14 +75,14 @@ export function ProjectFilter({ projects }: { projects: Project[] }) {
       {/* Results count */}
       {selectedTags.size > 0 && (
         <p className="text-sm text-muted-foreground mb-4">
-          {filtered.length}개 프로젝트
+          {filtered.length} {locale === "en" ? "projects" : "개 프로젝트"}
         </p>
       )}
 
       {/* Project grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filtered.map((project) => (
-          <ProjectCard key={project.slug} project={project} />
+          <ProjectCard key={project.slug} project={project} locale={locale} />
         ))}
       </div>
     </div>

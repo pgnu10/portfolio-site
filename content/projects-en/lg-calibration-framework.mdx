@@ -1,0 +1,150 @@
+---
+title: "Store Visitor Count Prediction Calibration Framework"
+subtitle: "3-Layer quality management system for automatically correcting AI prediction errors"
+period: "2025.07 ~ 2026.03"
+role: "DA Lead"
+company: "mAy-I Inc."
+tags: ["Anomaly Detection", "Quality Management", "Framework Design", "R&D"]
+tldr: "Designed a 3-Layer quality management framework combining Health Check, Risk Assessment, and Calibration to control calibration risk in low-GT environments."
+impact:
+  - "17%p KPI MAPE improvement"
+  - "3-Layer architecture"
+  - "7-module monitoring"
+  - "35-metric quality grading"
+featured: false
+order: 4
+---
+
+## Visitor Count Prediction Calibration Framework Design
+
+### Project Overview
+
+<img src="/images/CAL final_result.png" alt="CAL result" style={{ width: "100%", borderRadius: "8px" }} />
+
+Enterprise client visitor/consultation predictions were challenged on accuracy, but GT was extremely scarce — directly applying simple calibration models carried high generalization risk.
+After structurally decomposing error causes, I designed a 3-Layer framework that detects operational anomalies via Health Check, evaluates error risk via Risk Assessment, and applies Calibration only to low-risk segments.
+Visitors used residual correction while consultations used ratio correction, separating strategies by target type.
+Built a quality management system applicable to all stores, improving visitor/consultation prediction accuracy while controlling calibration failure risk.
+
+### Results at a Glance
+* Designed 3-Layer quality management framework suited for low-GT environments
+* Built Health Check system based on 7 modules and 35 metrics
+* Implemented Green / Yellow / Red quality grading for all stores
+* Separated strategies: residual calibration for visitors, ratio calibration for consultations
+* Risk Damping automatically adjusts correction intensity for high-risk stores
+* Visitor MAPE improved 3%p, Consultation MAPE improved 17%p
+* Wrote proposal and delivered client presentation
+* Config-driven structure externalizing thresholds, features, and damping rules
+* Converted from experimental notebook to operationally viable calibration framework
+
+<div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
+<MetricHighlight value="17%p" label="KPI MAPE Improvement" description="Core metric: visitor & consultation accuracy" />
+<MetricHighlight value="3-Layer" label="Quality Framework" description="Health Check, Risk Assessment, Calibration" />
+<MetricHighlight value="7 Modules" label="Monitoring" description="AI pipeline 7 modules" />
+<MetricHighlight value="35 Metrics" label="Quality Grading" description="Reliability, analysis metrics across 3 categories" />
+</div>
+
+---
+
+| Problem | Root Cause | Outcome |
+|---------|-----------|---------|
+| **Calibration model generalization risk** | Per-store GT was extremely scarce with large environmental differences — a single calibration model could amplify errors | Designed **3-Layer structure** (Health Check → Risk Assessment → Calibration) to control correction scope |
+| **Difficulty tracing error causes** | Prediction errors weren't from a single cause but accumulated module errors combined with store environment changes | Decomposed errors along two axes; built **Health Check system** with 7 modules/35 metrics for structural monitoring |
+| **Inadequate visitor/consultation calibration strategy** | Consultations are influenced by visitor predictions (denominator), making residual-only correction unstable | Separated strategies: **residual calibration** for visitors, **ratio calibration** for consultations |
+| **No operational application criteria** | Hardcoded thresholds, features, and damping rules made per-store adjustments difficult | Introduced config-driven structure designing a **framework enabling policy changes and operational tuning** |
+
+### My Role
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-8 my-4">
+  <div>
+    <span className="font-semibold">Led</span>
+    <ul className="list-disc ml-5 mt-2">
+      <li>Calibration problem redefinition and overall quality management frame design</li>
+      <li>Health Check / Risk Assessment / Calibration 3-Layer architecture design</li>
+      <li>Health Check criteria definition based on 7 modules and 35 metrics</li>
+      <li>Risk Damping logic and high/medium/low risk zone design</li>
+      <li>Visitor residual calibration and consultation ratio calibration strategy design</li>
+      <li>Ridge / Tree / MLP / KNN comparison experiments and final model selection</li>
+      <li>Feature search and config-driven structure design</li>
+      <li>Proposal writing and client presentation delivery</li>
+      <li>Full framework implementation and experiment code</li>
+    </ul>
+  </div>
+  <div>
+    <span className="font-semibold">Collaborated</span>
+    <ul className="list-disc ml-5 mt-2">
+      <li>Aligned GT collection and verification scope with labeling team</li>
+      <li>Discussed upstream module quality issues with ML team</li>
+      <li>Coordinated client proposal direction and operational scope with PM</li>
+      <li>Aligned quality grade utilization methods with operations team</li>
+    </ul>
+  </div>
+</div>
+
+## Approach
+
+### 1) Redefined the Problem as Quality Management, Not Simple Accuracy Improvement
+
+<img src="/images/CAL layer.png" alt="CAL layer" style={{ width: "100%", borderRadius: "8px" }} />
+
+Directly applying only a calibration model in an extremely low-GT environment risked worsening generalization performance at some stores.
+- Redefined the problem from "improving accuracy with a single calibration model" to "building a quality management system for safely applying calibration."
+- Judged that a structure for separately monitoring and controlling error causes — upstream module cumulative errors and store environment differences — was needed first.
+- Designed a 3-Layer framework applying Health Check, Risk Assessment, and Calibration sequentially.
+
+This transformed the problem into an operationally viable calibration framework even in GT-scarce environments.
+
+### 2) Health Check Design Based on 7 Modules and 35 Metrics
+
+<img src="/images/CAL health_check.png" alt="CAL health_check" style={{ width: "100%", borderRadius: "8px" }} />
+
+Even when prediction errors grow, diagnosing quality status before calibration is difficult without knowing which module the problem started in.
+- Divided the AI pipeline into 7 modules and defined 35 metrics explaining each stage's output quality.
+- Designed automatic Green / Yellow / Red status determination by calculating per-metric deviation using recent 4-week median and MAD as baselines.
+- Made it function both as preprocessing for calibration application decisions and as a monitoring system detecting operational quality anomalies.
+
+Established a foundation for regularly evaluating quality status across 60 stores and screening risky stores before calibration.
+
+### 3) Controlled Correction Intensity via Risk Damping
+
+<img src="/images/CAL final_result.png" alt="CAL result" style={{ width: "100%", borderRadius: "8px" }} />
+
+High-error stores appear to need calibration most, but in low-GT environments, those stores are actually where calibration is most dangerous.
+- Designed Risk Damping logic using Decision Tree-based high-error probability estimation, automatically reducing calibration intensity by probability zone.
+- Policy divided so high-probability stores receive almost no correction, mid-range stores get partial application, and low-probability stores get full calibration.
+- Controlled correction amount through risk-aware weighting rather than using calibration values directly.
+
+Reduced the risk of calibration worsening performance at high-risk stores while securing improvement effects at low-risk stores.
+
+### 4) Separated Calibration Strategies for Visitors and Consultations
+
+<img src="/images/CAL prev_after.png" alt="CAL prev_after" style={{ width: "100%", borderRadius: "8px" }} />
+
+Visitors and consultations have different error generation structures — treating them with the same calibration approach risked unstable consultation performance.
+- Determined that visitors were suitable for direct residual correction between predictions and GT, applying Ridge-based residual calibration.
+- For consultations, judged that the `consultation / visitor` ratio's stability was higher than consultation count itself, switching to ratio calibration that predicts consultation conversion ratio and multiplies by calibrated visitor count.
+- Compared Ridge, Tree, MLP, and KNN throughout this process, ultimately selecting Ridge for its most stable generalization performance in low-GT environments.
+
+Visitors improved stably while consultations achieved larger improvement margins than the residual approach.
+
+## Outcome: Designed 3-Layer Quality Management System Controlling Calibration Risk in Low-GT Environments, Securing Accuracy Improvement and Operational Viability
+* Designed framework combining calibration, risk control, and health monitoring
+* Built store quality status diagnostic system based on 7 modules and 35 metrics
+* Implemented Green / Yellow / Red quality grading for 60 stores
+* Separated strategies: residual calibration for visitors, ratio calibration for consultations
+* Achieved stable generalization performance in low-GT environments via Ridge-based calibration model
+* Wrote 42-page TF2 proposal and completed client presentation
+* Strengthened operational tuning and handoff viability through config-driven structure
+* Presented calibration roadmap extensible with additional GT acquisition
+
+### Technologies & Capabilities
+
+- **Tech Stack**: `Python`, `NumPy`, `Pandas`, `scikit-learn`, `Jupyter Notebook`, `config-driven experiment design`, `LOOCV`, `Ridge Regression`, `Decision Tree`, `Health Monitoring`
+* Ability to design realistic quality management frameworks in GT-scarce environments
+* Ability to structurally decompose error causes and convert them to operational criteria
+* Judgment to control both calibration performance and generalization risk
+* Ability to separate strategies for targets with different structures (visitors vs. consultations)
+* Execution ability connecting analysis experiments to operationally viable frameworks and proposal-grade deliverables
+
+---
+*E.O.D*

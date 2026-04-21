@@ -3,35 +3,40 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "./ThemeToggle";
+import { LocaleSwitcher } from "./LocaleSwitcher";
 import { useState } from "react";
+import type { Locale } from "@/lib/i18n";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Home" },
-  { href: "/projects", label: "Projects" },
-  { href: "/about", label: "About" },
-  { href: "/resume", label: "Resume" },
-  { href: "/ai", label: "AI" },
+  { path: "", label: "Home" },
+  { path: "/projects", label: "Projects" },
+  { path: "/about", label: "About" },
+  { path: "/resume", label: "Resume" },
+  { path: "/ai", label: "AI" },
 ];
 
-export function Navigation() {
+export function Navigation({ locale }: { locale: Locale }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <nav className="mx-auto max-w-6xl flex items-center justify-between px-6 h-14">
-        <Link href="/" className="font-semibold tracking-tight text-lg">
+        <Link href={`/${locale}`} className="font-semibold tracking-tight text-lg">
           GeonU Park
         </Link>
 
         {/* Desktop */}
         <div className="hidden md:flex items-center gap-1">
-          {NAV_ITEMS.map(({ href, label }) => {
+          {NAV_ITEMS.map(({ path, label }) => {
+            const href = `/${locale}${path}`;
             const active =
-              href === "/" ? pathname === "/" : pathname.startsWith(href);
+              path === ""
+                ? pathname === `/${locale}` || pathname === `/${locale}/`
+                : pathname.startsWith(href);
             return (
               <Link
-                key={href}
+                key={path}
                 href={href}
                 className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
                   active
@@ -43,13 +48,15 @@ export function Navigation() {
               </Link>
             );
           })}
-          <div className="ml-2">
+          <div className="ml-2 flex items-center gap-2">
+            <LocaleSwitcher locale={locale} />
             <ThemeToggle />
           </div>
         </div>
 
         {/* Mobile toggle */}
         <div className="flex md:hidden items-center gap-2">
+          <LocaleSwitcher locale={locale} />
           <ThemeToggle />
           <button
             onClick={() => setOpen(!open)}
@@ -70,10 +77,10 @@ export function Navigation() {
       {/* Mobile menu */}
       {open && (
         <div className="md:hidden border-t border-border bg-background px-6 py-3">
-          {NAV_ITEMS.map(({ href, label }) => (
+          {NAV_ITEMS.map(({ path, label }) => (
             <Link
-              key={href}
-              href={href}
+              key={path}
+              href={`/${locale}${path}`}
               onClick={() => setOpen(false)}
               className="block py-2 text-sm text-muted-foreground hover:text-foreground"
             >

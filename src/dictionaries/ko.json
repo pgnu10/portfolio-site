@@ -1,0 +1,78 @@
+{
+  "nav": {
+    "home": "Home",
+    "projects": "Projects",
+    "about": "About",
+    "resume": "Resume",
+    "ai": "AI"
+  },
+  "home": {
+    "role": "Data Scientist",
+    "heroTitle1": "비즈니스 의사결정에 필요한",
+    "heroTitle2": "질문을 정의하고, ",
+    "heroTitleAccent": "숫자로 답합니다.",
+    "heroDesc": "오프라인 리테일 매장 방문객 행동 분석 SaaS 플랫폼에서 LG전자, 삼성전자, 현대백화점 등 대형 고객사의 데이터 분석과 인사이트 전달을 리드했습니다.",
+    "heroDesc2": "모호한 비즈니스 니즈를 구조화된 분석 프레임워크로 변환하고, End-to-End 분석 파이프라인을 설계하여 고객사의 의사결정을 지원합니다.",
+    "competencies": ["문제 정의 & 프레임워크 설계", "End-to-End 분석 파이프라인", "KPI/지표 설계", "LLM/프롬프트 엔지니어링"],
+    "profileAlt": "박건우 프로필 사진",
+    "stats": [
+      { "value": "3+ Years", "label": "Years Experience", "desc": "오프라인 행동 데이터 분석" },
+      { "value": "10+ Clients", "label": "Client Projects", "desc": "LG, 삼성, 현대, 신세계 등" },
+      { "value": "15+ Projects", "label": "End-to-End Projects", "desc": "파이프라인 설계부터 프레젠테이션까지" },
+      { "value": "30+ KPIs", "label": "KPI Development", "desc": "핵심 지표 설계 및 개발" }
+    ],
+    "featuredTitle": "Featured Projects",
+    "viewAll": "View all"
+  },
+  "about": {
+    "title": "About",
+    "subtitle": "박건우 | Data Scientist (DA 팀 리드) | 메이아이(mAy-I Inc.)",
+    "profileTitle": "Profile",
+    "education": "고려대학교 | (주) 심리학, (부) 언어,뇌,컴퓨터",
+    "totalExp": "총 경력",
+    "domain": "오프라인 리테일 방문객 행동 분석",
+    "certs": "경영정보시각화능력, 빅데이터분석기사, SQLD, ADsP",
+    "languages": "OPIC: IH, TOEIC: 920, JLPT: N2",
+    "profileDesc": "메이아이 최초의 DA로 입사하여 팀을 0명에서 3명으로 확장하고, LG전자, 삼성전자, 현대백화점, 신세계백화점 등 대형 리테일 기업의 오프라인 매장 방문객 행동 데이터를 분석했습니다. 고객사 실무자와 직접 미팅하며 현장의 문제를 발견하고 데이터와 AI 솔루션으로 문제를 풀어내는 역할을 했습니다. 분석 파이프라인 설계, 커스텀 KPI 개발, 고객사 리포트 제작, AI 모델 품질 관리까지 DA 업무 전반을 이끌었습니다.",
+    "skillsTitle": "Skills",
+    "timelineTitle": "Timeline",
+    "labels": {
+      "education": "학력",
+      "experience": "총 경력",
+      "domain": "핵심 도메인",
+      "certs": "자격증",
+      "languages": "어학"
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "desc": "직접 수행한 End-to-End 데이터 분석 프로젝트 중 주요 케이스 스터디입니다.",
+    "summary": "요약",
+    "backToAll": "← Back to all projects"
+  },
+  "resume": {
+    "title": "Resume & Portfolio",
+    "desc": "이력서와 포트폴리오 PDF를 다운로드하실 수 있습니다.",
+    "resumeTitle": "이력서",
+    "resumeDesc": "경력기술서 및 이력서",
+    "portfolioTitle": "포트폴리오",
+    "portfolioDesc": "주요 프로젝트 케이스 스터디",
+    "download": "Download",
+    "quickSummary": "Quick Summary"
+  },
+  "ai": {
+    "title": "AI Assistant",
+    "desc": "포트폴리오에 대해 무엇이든 물어보세요. 프로젝트 케이스와 경력 정보를 기반으로 답변합니다.",
+    "suggestions": [
+      "박건우는 어떤 프로젝트를 했나요?",
+      "LG전자 프로젝트의 핵심 성과는?",
+      "LLM을 활용한 경험이 있나요?",
+      "이상치 탐지 시스템은 어떻게 설계했나요?",
+      "데이터 분석 역량으로 어떤 것을 개발했나요?",
+      "가장 자신 있는 기술 스택은?"
+    ]
+  },
+  "footer": {
+    "copyright": "2026 GeonU Park. Data Scientist."
+  }
+}

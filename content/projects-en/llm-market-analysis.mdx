@@ -1,0 +1,431 @@
+---
+title: "LLM-Based Trade Area Analysis Report Automation"
+subtitle: "End-to-End automated trade area analysis report pipeline powered by Multi-LLM Agent Flow and RAG"
+period: "2025.03 ~ 2025.06"
+role: "Primary Developer / LLM Pipeline Design"
+company: "mAy-I Inc."
+tags: ["LLM/Prompt Engineering", "RAG", "Automation"]
+tldr: "Transformed manual analysis report production into a production-grade report generation system using Multi-LLM Agent Flow and RAG"
+impact:
+  - "3 weeks > 15min auto-generation"
+  - "5+ client deliveries"
+  - "8-stage Agent Flow"
+  - "Multi-LLM role separation"
+featured: true
+order: 3
+---
+
+## LLM-Based Trade Area Analysis Report Automation
+
+### Project Summary
+
+<img src="/images/LLM Total_result.png" alt="Trade area analysis report results" style={{ width: "100%", borderRadius: "8px" }} />
+
+The client was satisfied with behavioral data itself but lacked the bandwidth to interpret dashboards and combine external trade area information to derive actionable plans.
+To solve this, I structured the existing manual trade area analysis report process step by step and converted it into a **Multi-LLM Agent Flow and RAG-based automated report system**.
+As a result, when a user inputs a question, a report covering external research, internal data analysis, and strategic recommendations can be **generated within 10–15 minutes** at production level — and was utilized in **contract extension and additional adoption discussions** with clients.
+
+### Key Achievements
+
+* Automated trade area analysis report production that previously took 3 weeks manually
+* End-to-end processing from question input to completed analysis + strategy report within 10–15 minutes
+* Designed 12 Stage prompts and 8-stage DAG-based Agent Flow
+* Applied multi-LLM role separation
+* Designed RAG context based on operational memos
+* Strengthened output consistency through validator, JSON schema, and Python post-processing
+* Delivered reports to multiple enterprise clients including Amorepacific and Handsome
+
+<div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
+<MetricHighlight value="3wks > 15min" label="Auto Report Generation" description="2,000x efficiency vs manual" />
+<MetricHighlight value="5+" label="Client Deliveries" description="Amorepacific, Handsome, etc." />
+<MetricHighlight value="40%+" label="Retention Increase" description="Contract extension discussions" />
+<MetricHighlight value="3-Multi LLM" label="Agent Role Separation" description="Research, analysis, strategy" />
+</div>
+
+---
+
+| Problem | Root Cause | Outcome |
+|---------|-----------|---------|
+| **Client dissatisfaction** | What clients wanted wasn't simple data lookup but<br />**causal interpretation and actionable recommendations** | Designed LLM-based trade area analysis report automation system |
+| **Unstable LLM quality** | Report quality degradation due to output inconsistency between LLM stages | Strengthened output consistency through<br />validator, JSON schema, and Python post-processing |
+| **Lack of scalability** | Users had to manually input client-specific special information | Dynamic information handling through RAG context design |
+
+### My Role
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-8 my-4">
+
+  <div>
+    <span className="font-semibold">Led</span>
+    <ul className="list-disc ml-5 mt-2">
+      <li>Problem definition and automation scope setting</li>
+      <li>Manual report analysis process structuring</li>
+      <li>8-stage Agent Flow and node I/O structure design</li>
+      <li>Multi-LLM role separation strategy</li>
+      <li>12 Stage prompt design</li>
+      <li>Validator and output guardrail design</li>
+      <li>Final report information architecture and visualization UX planning</li>
+    </ul>
+  </div>
+
+  <div>
+    <span className="font-semibold">Collaborated</span>
+    <ul className="list-disc ml-5 mt-2">
+      <li>DAG execution engine and API infrastructure implementation</li>
+      <li>RAG context structure design</li>
+      <li>UI integration and deployment</li>
+      <li>Production environment configuration</li>
+    </ul>
+  </div>
+
+</div>
+
+---
+## Approach
+
+### 1) Standardized Manual Analysis First
+
+<img src="/images/LLM preresearch.png" alt="Trade area pre-research" style={{ width: "100%", borderRadius: "8px" }} />
+
+Rather than building automated trade area analysis from scratch, I started by personally writing actual client-facing reports and organizing the analysis sequence and output structure.
+- Data analysis is not simple summarization but an interpretive process with a specific order,
+- And not every step of analysis can be automated.
+Through this process, I first established the **boundary between what can be automated and what requires human judgment**.
+
+### 2) Adopted Multi-LLM Architecture
+
+<img src="/images/LLM agent_flow.svg" alt="Trade area Agent Flow" style={{ width: "100%", borderRadius: "8px" }} />
+
+Initially, I tasked the LLM with data combination, calculation, interpretation, and sentence generation all at once — but quality degradation and numerical inconsistencies kept recurring.
+- So I separated calculations and aggregations requiring consistency into Python code,
+- And restructured so LLMs focus on interpretation and narration.
+- Additionally, I adopted a multi-LLM architecture separating roles for external research, internal data analysis, and strategy recommendations.
+Through this process, I **decomposed the analyst's thinking process into units the system can handle**.
+
+### 3) Designed Quality Guardrails
+
+The initial pipeline produced reports that looked quite natural at first glance, but repeated runs revealed subtle numerical and conclusion drift.
+- So I ensured calculations and narration are never processed in the same stage.
+- Added validators to verify final numbers match original aggregation results.
+- Applied JSON schema and post-processing to regenerate from that stage when outputs deviate from schema.
+Ultimately, **LLMs were focused on interpretation and narration**, while *consistency and reproducibility were controlled through code*.
+
+## Outcome: Transformed Data Lookup Service into Interpretive Analysis Service with External Context
+- Automated the trade area analysis report production structure that took 3 weeks manually.
+- Designed production-level capability processing from question input to completed report within 15 minutes.
+- Applied multi-LLM role separation and designed 12 Stage prompts with 8-stage DAG-based Agent Flow.
+- Configured RAG pipeline for dynamic information handling.
+- Delivered functionality to multiple clients including Amorepacific and Handsome; utilized in contract extension and additional adoption discussions after client meeting demonstrations.
+
+### Technologies & Capabilities
+- **Tech Stack**: `Python`, `JSON Schema`, `Streamlit`, `YAML/JSON`, `ThreadPoolExecutor`, `RAG`, `OpenAI o3-mini`, `GPT-4.1`, `Perplexity sonar-pro`
+- Ability to redefine client problems into analysis service structures
+- Ability to decompose manual analysis processes into automatable stages
+- Design capability to separate code and roles rather than using LLM as a universal tool
+- Quality control capability considering consistency, reproducibility, and explainability
+- Execution ability connecting data analysis, AI utilization, and productization perspectives
+
+---
+---
+
+## The following is a detailed case study.
+---
+
+## 1. Project Overview
+
+The starting point for this trade area analysis report automation project was the finding that clients weren't effectively utilizing our data.
+At the time, Amorepacific — on our highest-tier plan — showed extremely low dashboard service usage relative to their costs. As their contract end date approached, internal concerns about client retention grew, naturally leading to the conclusion that we needed to proactively identify and address client pain points. In meetings with the client, we confirmed the reason:
+The client's dissatisfaction wasn't about our data quality — it was that **field staff didn't have time to interpret and utilize data themselves**.
+
+In practice, the client's staff checked data weekly but couldn't actually use it for decision-making. They lacked the resources to analyze and interpret visitor counts, dwell times, and traffic trends sitting in dashboards to apply to their work. What they truly wanted wasn't **the numbers themselves, but what caused those numbers and what they should do to solve problems**.
+
+For this, behavioral data alone wasn't sufficient. When visitors decreased, distinguishing whether the cause was store operations or trade area decline required external trade area information and industry context.
+But when humans performed this process manually, investigating and analyzing a single location took over 3 weeks — a structure that simply couldn't scale as a service.
+
+My role was to structure this manual analysis process step by step and convert it into a **Multi-LLM Agent Flow + RAG + validator-based automated report system**.
+As a result, I designed production-level functionality where users input questions and receive reports covering external research, internal data analysis, and strategic recommendations within 15 minutes.
+
+<img src="/images/LLM Total_result.png" alt="Trade area analysis report results" style={{ width: "100%", borderRadius: "8px" }} />
+
+---
+
+## 2. Problem Background
+
+The reason dashboard utilization was low wasn't dissatisfaction with data quality — it was that **field staff didn't have time to interpret it themselves**.
+
+For example, when seeing data showing decreased store visitors, field staff would have questions like:
+* Is it our store's operations or product mix that's the problem?
+* Has the trade area foot traffic itself decreased?
+* Have there been changes in competing stores?
+* Is this a temporary event or structural change?
+
+It's self-evident that solutions differ depending on which is the cause.
+However, since the existing service was centered on internal behavioral data, answering these questions required additional external trade area research.
+The problem was that the research cost was prohibitively high.
+When humans manually collected and interpreted regional trade area changes, competing stores, industry trends, and residential population data to write reports, it essentially became custom consulting.
+This was possible for some clients but unsustainable for repeating across multiple clients as a SaaS service.
+
+Ultimately, the core challenge was clear:
+**Transform interpretive analysis reports that include external context into a repeatable system.**
+
+---
+
+## 3. My Role
+
+My decision-making responsibilities in this project fell into five main areas.
+
+### 3-1. Problem Definition and Automation Scope
+
+I defined that what clients actually wanted wasn't simple data lookup but interpretive analysis services, and set automation goals based on this.
+The key was not "automatically generating reports" but **transforming the analysis process into a product feature**.
+
+### 3-2. Manual Analysis Process Structuring
+
+While personally writing initial reports, I organized what **data** was needed, in what **order** it should be interpreted, and what **logic** was needed for client buy-in.
+The subsequent automation pipeline was designed based on this structure.
+
+### 3-3. LLM Pipeline Design
+
+I designed 12 Stage **prompts** and 8-stage DAG-based **Agent Flow**.
+I defined each stage's role, input/output formats, model selection criteria, and regeneration conditions.
+
+### 3-4. Quality Control Design
+
+To resolve numerical consistency issues, I separated calculation from narration and introduced validators, JSON schema, and Python post-processing.
+This part was more important for **securing system reliability** than simple prompt tuning.
+
+### 3-5. Report UX and Information Architecture
+
+To ensure the final deliverable would be readable and usable by clients, I designed the **information structure and visualization flow** from question input through status reports to strategy reports.
+
+Collaboration was clearly present.
+The DAG execution engine and API infrastructure were built with a backend engineer, and UI integration and deployment were done with a frontend engineer.
+
+However, my central responsibility was **designing the analysis structure and quality standards** rather than implementation details.
+
+## 4. Why I Started with Manual Work
+
+Looking back, the most important decision in this project was "not attempting automation from the start, but organizing the manual analysis process first."
+
+Creating a single report manually — including data preparation, external research, storyline design, visualization, and documentation — took 2–3 weeks. It was inefficient, but thanks to that process I could identify which analyses actually mattered to clients, and the scope of automation became clearer.
+
+Two key insights emerged from this phase.
+
+First, **analysis is not simple summarization but an interpretive process with a specific order**.
+For example, you first look at overall visitor structure, then drill down into demographic/spatial/zone patterns, and finally connect to external trade area context — this sequence makes it easier for clients to understand.
+
+Second, **not every step can be automated**.
+Numerical aggregation and structured comparisons could be stably produced with code and prompts, but expressions tailored to client context and some strategic recommendations required more careful control. Seeing this boundary first became the foundation for subsequent design.
+
+In other words, automation didn't start from an idea — it was **the result of extracting structure after performing actual analytical labor**.
+
+<img src="/images/LLM preresearch.png" alt="Trade area pre-research" style={{ width: "100%", borderRadius: "8px" }} />
+
+---
+
+## 5. How I Transferred the Analysis Process to a System
+
+### 5-1. Organizing the Analysis Framework
+
+Based on the analytical logic organized from manual reports, I structured the overall flow as follows:
+
+* Internal behavioral data interpretation
+* External trade area and industry context collection
+* Hypothesis generation for current performance causes
+* Improvement directions and strategic recommendations
+* Delivery in report format
+
+The key was not passing broad requests like "analyze this" directly to an LLM. Instead, I broke down what needs to be judged at each stage.
+For example, change rate calculation, trade area average comparison, anomaly detection, causal hypothesis generation, and action recommendations each **required different types of reasoning**. Doing them all at once produced results that looked plausible but had unstable quality.
+
+### 5-2. 12 Stage Prompt Design
+
+So I separated prompts by stage as well.
+Each stage was designed to perform only one role, with intermediate outputs fixed in JSON/YAML format. Only the final stage converted to prose report format.
+
+The reasons for this structure:
+
+* Stage-specific failures can be isolated.
+* It's easy to find where quality is wavering.
+* Output formats can be enforced.
+* Only specific stages can be regenerated, increasing operability.
+
+What matters more than the fact that many prompts were used is that **the analytical thinking process was decomposed into units the system can handle**.
+
+<img src="/images/LLM agent_flow.svg" alt="Trade area Agent Flow" style={{ width: "100%", borderRadius: "8px" }} />
+
+## 6. Why I Chose a Multi-LLM Architecture
+
+Initially, I considered a single-model approach — implementation was easier and the simpler structure made maintenance straightforward.
+However, running it in practice made it clear that each stage required different capabilities.
+
+* External trade area research needed real-time search for up-to-date information.
+* Data-driven analysis stages needed the ability to reason about causes and solutions based on numbers and conditions.
+* Final report writing needed the ability to stably produce sentence flow and report tone.
+
+For this reason, I separated models by role:
+
+* **External web research**: `sonar-pro`
+* **Data interpretation and analytical reasoning**: `o3-mini`
+* **Final report generation and sentence quality**: `GPT-4.1`
+
+The important point here is that **the analysis process was decomposed to select models that perform optimally for each role**.
+As a result, while the operational structure became more complex than a single model, quality became far more stable.
+
+---
+
+## 7. How the 8-Stage Agent Flow Was Designed
+
+The final pipeline was structured as an 8-stage DAG-based workflow.
+The key principles were **parallelization** and **stage separation**.
+
+First, external research nodes were executed in parallel.
+- One investigated the business domain and brand context,
+- The other collected regional trade area foot traffic, competitive environment, and recent issues.
+This stage dramatically shortened what had been the most time-consuming part during manual work.
+
+Next, the analysis plan node generated the overall report table of contents and question structure.
+This was where the most effort was invested — designed to reflect the data analyst's interpretation and analysis process in maximum detail.
+It was also the part that most influenced the quality of final report results.
+
+<img src="/images/LLM analysis_node.png" alt="Trade area analysis plan node" style={{ width: "100%", borderRadius: "8px" }} />
+
+Then the data analysis node interpreted internal behavioral data and external trade area data, and performance reports and strategy reports were generated sequentially.
+Particularly in the strategy report stage, separate search queries were generated to **additionally collect latest trends and benchmarks**.
+
+The advantages of this structure were:
+
+* Research and analysis can be parallelized to reduce time.
+* Each stage's inputs and outputs can be clearly managed.
+* If some nodes fail, the entire pipeline doesn't need to be rerun.
+* Specific stages can be improved or replaced later.
+
+## 8. How I Solved the Biggest Problem: Numerical Inconsistency
+
+The most dangerous failure in this project wasn't wrong sentences — it was **wrong numbers**.
+The initial pipeline produced reports that looked quite natural at first glance, but repeated runs revealed subtle numerical drift. In some cases, when calculating weekday average visitors, certain days were omitted, resulting in lower-than-actual numbers appearing in reports.
+The problem was that LLM-generated report sentences were mostly natural, making errors hard to spot — risking provision of incorrect information.
+
+After this experience, I redesigned the overall structure.
+
+### 8-1. Separating Calculation from Narration
+
+The first thing I did was **ensure calculation and narration are never processed in the same stage**.
+Programmatic tasks like arithmetic and simple text processing were handled by code rather than LLMs, while LLMs were limited to interpreting and narrating already-confirmed results.
+
+This increased code complexity and inter-module context switching costs, but I chose this approach because it reduced LLM operational costs and provided far more stable outputs in actual operations.
+
+### 8-2. Introducing Validators
+
+Next, I introduced **validators**.
+Logic to verify that numbers used in the final report match original aggregation results, and to regenerate from that stage if outputs deviate from schema.
+This part was more important for **securing system reliability** than simple prompt tuning.
+
+### 8-3. JSON Schema and Post-processing
+
+Securing complete format stability through LLM prompts alone had limitations.
+So intermediate outputs in the agent flow had formats enforced through JSON schema, and Markdown special characters or format breaks were corrected via Python post-processing.
+
+The conclusion from this process:
+- **LLMs should focus on interpretation and narration, while consistency and reproducibility should be controlled through code.**
+- This may increase context switching costs between agents, but makes output quality far more stable.
+
+---
+
+## 9. How RAG Was Designed
+
+What played a crucial role in elevating report quality was the RAG context design.
+
+To obtain genuinely meaningful insights from analysis results, **field staff's domain knowledge** is essential.
+However, no matter how much we try to reflect client information, it's impossible to incorporate all the domain knowledge of field staff who actually operate stores.
+
+The simplest way to reflect field staff domain knowledge is having them input it every time they use the LLM service.
+But this wasn't a solution to the client's original complaint of "lacking resources for analysis."
+
+After deliberation, I decided to utilize both static information stored in our internal DB and **dynamic context** like board memos accumulated during store operations.
+
+* **Static information**: Address, industry, past analysis results, basic store information
+* **Dynamic information**: Holidays, renovations, promotions, on-site anomalies
+
+Initially, I thought static information alone would suffice. But in practice, interpretation quality was markedly different when operational memos were included. For example, a 30% visitor increase alone is hard to explain, but with an operational memo saying "renovation opening event in progress," the increase can be interpreted much more naturally and persuasively.
+
+In this project, RAG's value wasn't simply adding background knowledge — it was **attaching context to numbers**.
+
+<img src="/images/LLM RAG.png" alt="Trade area RAG context injection" style={{ width: "100%", borderRadius: "8px" }} />
+
+## 10. Results and Impact
+
+This project's outcome wasn't a few automated PDF reports — it was the **automated analysis report feature itself** where users input questions within mAsh and receive external research, data analysis, and strategic recommendations.
+
+For example, when a user inputs "Visitors decreased this month — I want to know if it's trade area impact or store impact," the system researches relevant external materials, combines them with internal behavioral data, and generates status and strategy reports.
+
+### Key Achievements
+
+* Automated trade area analysis report production that took 2–3 weeks manually
+* End-to-end processing from question input to completed report within 10–15 minutes
+* 12 Stage prompt and 8-stage Agent Flow design
+* Multi-LLM role separation and application
+* AWS Bedrock KB-based RAG pipeline configuration
+* Delivered functionality to multiple clients including Amorepacific and Fujifilm
+* Utilized in contract extension and additional adoption discussions after client meeting demonstrations
+
+The important achievement here is not simple auto-generation but **transforming interpretive analysis into a feature clients can use directly**.
+
+<img src="/images/LLM result_compare.png" alt="Trade area report before/after comparison" style={{ width: "100%", borderRadius: "8px" }} />
+
+---
+
+## 11. Significance of This Project
+
+This project was significant in two respects.
+
+First, my role as a data analyst **didn't stop at writing reports**.
+I redefined client questions into analyzable structures and transformed that process into a repeatable system. In this sense, this project was one step closer to productization than traditional analysis projects.
+
+Second, **it established standards for how to adopt LLMs**.
+What became clear through this project was that distinguishing where LLMs should and shouldn't be used matters far more than using them extensively. This experience became a standard when designing subsequent automation projects.
+
+---
+
+## 12. Limitations & Retrospective
+
+Limitations also existed.
+- The multi-LLM architecture was advantageous in terms of speed, but quality was definitely lower compared to expert-written reports.
+- Additionally, residential population data coverage was insufficient outside Seoul, creating constraints on regional scalability.
+- Despite building validators and guardrails, human review was still necessary before final delivery.
+- Output formats still had occasional exceptions.
+
+If I were to do this again, I would address three things first:
+- First, optimize costs by segmenting model tiers more granularly based on stage importance.
+- Second, secure alternative data sources extensible beyond Seoul from the beginning.
+- Third, build an evaluation pipeline for quantitatively comparing prompt and output quality earlier.
+
+Reflecting on this project,
+what enterprise clients need is not data access itself but **an interpretive analysis service that combines data with external context to lead to actual action**.
+And building that service required analysis capability, system design capability, and AI utilization capability together.
+
+---
+
+## 13. Tech Stack & Implementation
+
+**Tech Stack**
+
+* Python
+* Streamlit
+* YAML / JSON
+* ThreadPoolExecutor
+* OpenAI o3-mini
+* GPT-4.1
+* Perplexity sonar-pro
+
+**Core Implementation Elements**
+
+* 12 Stage prompt design
+* 8-stage DAG-based workflow design
+* Multi-LLM role separation
+* Validator and JSON schema-based guardrails
+* RAG context design
+* Interactive report generation UI integration
+
+---
+
+*E.O.D*

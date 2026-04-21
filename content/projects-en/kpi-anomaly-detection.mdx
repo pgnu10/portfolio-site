@@ -1,0 +1,446 @@
+---
+title: "KPI Anomaly Detection System"
+subtitle: "Daily automated anomaly detection and reporting for 7 operational metrics across 60+ stores"
+period: "2025.09 ~ 2025.12"
+role: "DA Lead / System Design"
+company: "mAy-I Inc."
+tags: ["KPI Design", "Anomaly Detection", "Statistical Analysis", "Automation", "Quality Management"]
+tldr: "Built a quality monitoring system that automatically monitors 7 operational metrics across 60+ stores daily and connects anomaly signals to traceable root cause investigation"
+impact:
+  - "60+ store operational metric monitoring"
+  - "80%+ initial diagnosis resource savings"
+  - "30%+ valid anomaly detection rate"
+  - "Enterprise client contract renewal"
+featured: true
+order: 2
+---
+
+## KPI Anomaly Detection System Design
+
+### Project Summary
+
+<img src="/images/ANO total_result.png" alt="Anomaly detection results" style={{ width: "100%", borderRadius: "8px" }} />
+
+The client was losing trust in our data. The problem was that building large-scale Ground Truth for comprehensive accuracy verification was impossible in a short timeframe.
+In this situation, to prevent immediate client churn, I proposed **building an operational KPI-based consistency monitoring system** rather than "proving accuracy."
+Instead of monitoring only the final output value, I decomposed the AI pipeline into module-level KPIs to enable narrower tracking of anomaly occurrence points.
+Using a multi-window detection logic that reflects recent trends, mid-term patterns, year-over-year comparisons, and lunar holiday effects, the system reliably captured meaningful anomaly signals in actual operations.
+I designed a system that automatically checks 7 core metrics across 60+ stores nationwide daily, and when anomalies occur, enables drill-down to video/visitor level to narrow the root cause investigation scope.
+This system led to contract renewal after client demonstration, and became an established internal operational routine.
+
+### Key Achievements at a Glance
+
+* Built daily automated monitoring system for 420+ data points across 60+ stores and 7 operational KPIs
+* Designed module-level KPI decomposition structure instead of monitoring only final outputs, enhancing root cause traceability
+* Designed multi-window baselines reflecting recent 3 weeks / recent 3 months / year-over-year / lunar holidays
+* Built explainable detection logic including day-of-week/holiday segment alignment, asymmetric thresholds, and 4-level severity classification
+* 80%+ initial anomaly diagnosis resource savings
+* 30%+ valid anomaly detection rate
+* Camera×video and visitor-level drill-down support when anomalies occur
+* Contract renewal after client demonstration
+* Established as operational routine used by PM, AI dev team, and assistants
+
+<div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
+<MetricHighlight value="60 x 7" label="Operational Metrics" description="420+ data points monitored daily" />
+<MetricHighlight value="80%+" label="Diagnosis Resource Savings" description="Compared to manual monitoring" />
+<MetricHighlight value="30%+" label="Valid Detection Rate" description="Beyond simple alerts, root cause traceable" />
+<MetricHighlight value="4-Level" label="Severity Classification" description="VERY HIGH/HIGH/LOW/VERY LOW" />
+</div>
+
+---
+
+| Problem | Root Cause | Outcome |
+|---------|-----------|---------|
+| **Data trust decline** | Discrepancy between client-perceived visitor count and solution numbers led to service-wide distrust | Built always-on consistency monitoring system<br />Contract renewal after direct client demonstration |
+| **Impracticality of GT-based accuracy verification** | One labeler needs 1+ week for a single store's daily data | Redefined problem as operational KPI-based consistency monitoring<br />Narrowed GT target scope |
+| **No root cause tracing on anomaly** | Final output alone can't identify which module is problematic or what type of error occurred | Module-level KPI decomposition<br />Video / visitor-level drill-down |
+| **Limitations of manual monitoring** | Anomaly points judged by experiential intuition, criteria vary by person | Multi-window automated detection + asymmetric thresholds + 4-level severity classification |
+
+## My Role
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-8 my-4">
+
+  <div>
+    <span className="font-semibold">Led</span>
+    <ul className="list-disc ml-5 mt-2">
+      <li>Problem redefinition and quality management framework design</li>
+      <li>AI pipeline structure analysis and module-level core KPI design</li>
+      <li>Multi-window based detection logic design</li>
+      <li>Day-of-week/holiday/lunar segment alignment design</li>
+      <li>Asymmetric threshold and 4-level severity classification design</li>
+      <li>Anomaly detection visualization and drill-down structure design</li>
+      <li>Client demonstration logic and explanation structure design</li>
+    </ul>
+  </div>
+
+  <div>
+    <span className="font-semibold">Collaborated</span>
+    <ul className="list-disc ml-5 mt-2">
+      <li>Module-level KPI definition refinement and interpretation alignment</li>
+      <li>Anomaly review and false positive/negative feedback integration</li>
+      <li>Field inspection and response process coordination</li>
+      <li>Slack/Notion automation integration</li>
+    </ul>
+  </div>
+
+</div>
+
+## Approach
+
+### 1) Redefining accuracy verification as operational monitoring
+
+<img src="/images/ANO plan.png" alt="KPI anomaly detection system plan" style={{ width: "100%", borderRadius: "8px" }} />
+
+Recovering client trust required proving accuracy, but building large-scale *GT reflecting client criteria was realistically impossible* in terms of cost and time.
+- Therefore, I redefined the problem from "proving accuracy at once" to **"continuously monitoring operational risks and responding quickly when anomalies occur."**
+- I determined it was more realistic to first detect signs of service quality degradation and narrow the review scope to only segments requiring detailed investigation.
+
+As a result, without being stuck on large-scale labeling, I was able to establish an **explainable quality management framework** for both the client and internal organization.
+
+### 2) Module-level KPI decomposition instead of system-wide monitoring
+
+<img src="/images/ANO structure.png" alt="KPI anomaly detection structure" style={{ width: "100%", borderRadius: "8px" }} />
+
+Monitoring the entire system by final output alone could detect whether anomalies exist but couldn't immediately identify which AI module stage caused the problem.
+- I designed **stage-level KPIs** separated across the AI pipeline including visitor count, coverage, dwell time, and attribute prediction.
+- I structured each metric to be monitored independently, enabling **narrowing the scope of suspected modules** when anomalies occur.
+- I ensured quality monitoring metrics became a **common language** for developer debugging and client communication, not just simple monitoring tools.
+
+Through this, anomaly detection results could be directly connected as starting points for root cause investigation, improving the **initial diagnosis efficiency** of PMs and the AI development team.
+
+### 3) Explainable multi-window baseline design
+
+<img src="/images/ANO detector_plan.png" alt="KPI anomaly detection multi-window baseline design" style={{ width: "100%", borderRadius: "8px" }} />
+
+Store data involves complex interactions of **day-of-week patterns, recent fluctuations, mid-term patterns, seasonality, and holiday effects**, making it difficult to reliably reduce false positives and negatives with a single baseline.
+- I designed **multi-window baselines** reflecting recent 3 weeks, recent 3 months, year-over-year, and lunar holiday periods to enable simultaneous comparison of short-term anomalies and structural patterns.
+- I added homogeneity distinction to separate dates with different characteristics — weekdays vs. weekends, holidays vs. non-holidays — ensuring **comparison within the same segment**.
+- Aligned with actual operational criteria, upper/lower thresholds were set asymmetrically rather than symmetrically, tuned to respond more sensitively to downward anomalies.
+
+While maintaining explainability that clients and internal teams could accept, the system reduced unnecessary alerts and more reliably captured meaningful anomaly signals in actual operations.
+
+### 4) Drill-down structure after detection
+
+<img src="/images/ANO raw_data.png" alt="KPI anomaly granular data" style={{ width: "100%", borderRadius: "8px" }} />
+
+Even if anomalies are detected, without knowing which camera, which video, or which visitor case to investigate, the fundamental problem resolution speed doesn't improve significantly.
+- I designed a **drill-down structure** that enables immediate investigation down to video-level and visitor-level from anomaly detection results.
+- At the video level, specific time periods and video segments can be quickly narrowed to identify field issues or filming environment changes.
+- At the visitor level, issues like tracking failures, ID switching, and attribute prediction errors can be inferred.
+- Instead of reviewing all videos, I created a flow that prioritizes inspection of segments where anomaly signals are concentrated.
+
+By enabling **rapid narrowing of GT review scope and debugging scope**, the anomaly detection results became an operational tool that leads to actual inspection and response.
+
+## Outcome: Designed Operational KPI-Based Quality Monitoring and Root Cause Tracing System to Restore Client Trust
+- Established an **explainable quality management framework** for both the client and internal organization without relying on large-scale labeling.
+- Connected anomaly detection results as starting points for root cause investigation, improving **initial diagnosis efficiency** of PMs and AI development team.
+- Reduced unnecessary alerts and more reliably captured meaningful anomaly signals.
+- Anomaly detection results became an operational tool leading to actual inspection and response.
+- Subsequently expanded to anomaly detection monitoring systems for other enterprise clients.
+
+### Technologies & Capabilities
+- **Tech Stack**: `Python`, `Pandas`, `Streamlit`, `Time-series Anomaly Detection`, `Multi-window Weighted Average`, `Box Plot Distribution Comparison`, `Slack API`, `Notion API`, `n8n`
+* Ability to redefine infeasible verification problems into operationally viable structures
+* Ability to structure AI quality issues into KPIs and time-series baselines
+* Ability to design explainable detection logic and make it the organization's common language
+* Execution capability to connect detection results to root cause investigation and response processes
+* Competency to integrate data analysis, quality management, and operational automation into a single system
+
+---
+---
+
+## The following is a detailed case study.
+---
+
+## 1. Project Overview
+
+This project started in a situation where the client had strong distrust of our data.
+The client felt that the visitor count they perceived differed from what we provided, and this gap was evolving beyond a mere numerical error into a trust issue with the entire service.
+The most direct solution would have been to manually review original CCTV footage to create Ground Truth and compare it with model results, but this realistically required **too much cost and time**.
+In particular, the client wanted their own counting criteria reflected — such as "stayed N+ minutes" and "group visits" — and creating GT that incorporates these conditions required one labeler to spend over a week per store.
+
+If the best approach isn't realistic, you must find a realistic **alternative**. So I redefined the problem in this situation.
+If we can't perfectly prove data accuracy right now, I determined that trust could be recovered by instead demonstrating **an operational system that continuously monitors risks and responds quickly when anomalies occur**.
+In other words, we needed to **simultaneously provide** the client with confidence that "**we can manage data risk**" and internally provide a debugging foundation for "**narrowing down where and what problems occurred faster**."
+
+<img src="/images/ANO plan.png" alt="KPI anomaly detection system plan" style={{ width: "100%", borderRadius: "8px" }} />
+
+To achieve this, I designed an anomaly detection system that included **module-level KPI decomposition** of the AI pipeline, **multi-window** seasonality-aware baselines, **day-of-week/holiday** segment distinction, **asymmetric thresholds**, box plot-based **distribution comparison**, and camera×video and visitor-level **drill-down**.
+The deliverable was provided as a Streamlit-based **monitoring dashboard** accessible via mAsh, connected to Slack **alerts** and Notion **documentation automation**.
+
+This system was directly demonstrated at a client meeting, ultimately contributing to the client extending their contract to wait for our accuracy improvement research. It subsequently became an operational system routinely used by PM, AI development team, and assistant organizations.
+
+---
+
+## 2. Problem Background
+
+What the client took issue with was that the visitor count they perceived differed from what we provided, but the more fundamental problem was that **there was no structure to explain why** when discrepancies occurred.
+
+For example, the visitors the client perceives are those that on-site staff subjectively count — people showing clear intent to use the store. Our solution, on the other hand, counts visitors based on programmatic criteria without subjective input.
+Convincing them that the difference between these two isn't simply an accuracy issue ultimately required verification against actual footage.
+
+The problem was the cost of that verification.
+The client's visitor criteria required meeting specific conditions of store dwell time and group-level counting, and creating GT reflecting this required one labeler to spend over a week per single store. Reviewing each of the 60+ data points generated daily was practically impossible.
+However, the contract termination date was approaching, and it was obvious that if this issue wasn't resolved quickly, contract termination was inevitable.
+
+I thought at this point that "if we try to solve this problem only through direct accuracy verification, we'll keep hitting walls."
+Instead, **a structure that quickly detects fluctuations in system quality and narrows down problematic segments for response** was more realistic and more urgent.
+
+## 3. My Role
+
+My responsibilities in this project fell into four main areas.
+
+### 3-1. Problem Redefinition
+
+With the premise that GT-based accuracy verification was realistically difficult, I redefined the quality management goal as an operational KPI-based consistency monitoring system.
+
+### 3-2. KPI System Design
+
+Instead of monitoring the entire system by a single final output (visitor count), I designed a structure where core KPIs are defined per AI module to track which stage anomalies originate from.
+
+### 3-3. Detection Logic Design
+
+I designed detection logic including multi-window seasonality-aware baselines, day-of-week/holiday segments, asymmetric thresholds, and 4-level severity classification.
+
+### 3-4. Visualization and Drill-down Structure Design
+
+When anomalies occur, rather than just showing graphs, I created a structure that enables immediate drill-down to camera×video level and visitor level.
+
+### 3-5. Client Demonstration and Operational Internalization
+
+I designed explanation logic and demonstration structure that clients could understand, and connected it to flows usable by PM, AI development team, and assistants in actual operations.
+
+Slack/Notion automation integration and operational automation were done collaboratively, but the core judgment area I owned was **designing the detection criteria and root cause tracing structure**.
+
+---
+
+## 4. How I Redefined the Problem
+
+If there's an accuracy issue, you create Ground Truth and compare it with actual values. In principle, this is the correct approach.
+But in this project, cost and time were the obstacles.
+This GT labeling wasn't simple number counting — it became a large project requiring review of dwell time, group units, and scene-by-scene context for verification.
+
+This is where I shifted perspective.
+What we could immediately show the client wasn't perfect accuracy proof, but **evidence that we're not neglecting anomaly signals and are managing them**.
+Internally, what was needed wasn't reviewing every scene again, but a detection system that could quickly narrow down problematic segments.
+
+So I concluded that this project should become an **operational quality monitoring system**, not an accuracy verification project.
+
+## 5. Why Module-Level KPI Monitoring Instead of System-Wide
+
+Initially, I considered monitoring a single final output (visitor count). The structure was simple and seemed easy to explain to clients.
+But the limitations of this approach were clear — even if anomalies are detected, you can't tell which stage is wobbling or what type of problem it is.
+
+Our goal wasn't simply to persuade the client and move past the situation, but to verify data accuracy and find fundamental problems to solve.
+Therefore, I needed to devise a way to tell the internal development team "which module's which metric is fluctuating" with specific signals.
+
+So I chose a structure that defines core KPIs per module and monitors them independently.
+This way, anomaly detection itself becomes the starting point for root cause investigation — depending on which metric fluctuated, you can first narrow the scope of suspected modules (tracking, filtering, attribute prediction, etc.).
+
+<img src="/images/ANO structure.png" alt="KPI anomaly detection structure" style={{ width: "100%", borderRadius: "8px" }} />
+
+To accomplish this, I first diagrammed the AI modules and data processing pipeline from the rawest video to the final output (visitor count).
+Surprisingly, no overall pipeline diagram existed, so I completed it by searching through internal documents and asking responsible personnel when necessary.
+(The image above is a de-identified version of the pipeline I directly created through this process.)
+
+Then I defined metrics for each pipeline stage that could show "AI confidence" and "output" indicators.
+For example, I selected metrics to answer questions like:
+- How confident is the Estimator in predicting visitor age groups?
+- How many tracklets does the Tracker merge into a single identity?
+- How many tracklets are dropped when passing from Detector to Unifier?
+
+Significant collaboration with the AI development team occurred during this process.
+
+---
+
+## 6. How the Detection Logic Was Designed
+
+### 6-1. Why explainable structure over complex models
+
+Initially, I reviewed EWMA and IQR combinations first. I also examined alternatives like GLM/GAM, robust estimators, Isolation Forest, LSTM, and Prophet.
+All are commonly used methods in time-series anomaly detection and theoretically applicable to our data.
+
+However, what matters in actual operations isn't just mathematical sophistication.
+This system needed to enable clients, PMs, data analysts, and AI development teams to **look at the same screen and speak the same language**.
+I determined that no matter how accurately anomalies are identified, if it's difficult to explain why a value is anomalous, it's hard to use as an operational tool in the field.
+
+So I ultimately chose a **multi-window baseline + segment alignment** structure.
+The key was that it must be sufficiently explainable while also reflecting domain characteristics.
+
+<img src="/images/ANO detector_plan.png" alt="KPI anomaly detection multi-window baseline design" style={{ width: "100%", borderRadius: "8px" }} />
+
+### 6-2. Multi-window baseline design
+
+Offline store data is simultaneously affected by short-term trends, mid-term patterns, and annual seasonality.
+Using only one comparison period inevitably misses certain signals. So I designed the anomaly baseline to be calculated by combining four windows (R, Q, SY, LY).
+
+* **R (Recent)**: Last 3 weeks. Detects the most recent trend fluctuations.
+* **Q (Quarter)**: Last 3 months excluding R. Reflects mid-term patterns representing one seasonal unit.
+* **SY (Solar Year)**: Same period last year. Reflects annual seasonality.
+* **LY (Lunar Year)**: Lunar holiday periods. Reflects annual seasonality while correcting for Korea's unique lunar holidays (Seollal/Chuseok).
+
+### 6-3. Day-of-week/weekend/holiday segment alignment
+
+Due to domain characteristics, the client's stores have high variance in visitor patterns by day-of-week, weekday/weekend, and holidays.
+If we simply divide data by period without reflecting this and detect anomalies, there's a high chance of producing false alerts.
+For example, confirming an anomaly alert only to find "more visitors came on the weekend compared to weekdays" — an obvious result.
+
+To prevent this, I built a structure where anomaly detection compares only the same segments from historical data.
+Mondays are compared with past Mondays, holidays with past holidays, with solar and lunar holidays also separated.
+Without this alignment, false alerts increase significantly — such as judging weekend numbers against weekday baselines.
+
+### 6-4. Multi-window, segment application, weight combination
+
+The final logic was constructed as follows:
+
+<img src="/images/ANO multi_window.svg" alt="KPI anomaly detection multi-window" style={{ width: "100%", borderRadius: "8px" }} />
+
+First, windows are combined based on how much data is available for anomaly detection (data availability).
+If the data retention period is:
+- Less than 3 months: anomaly detection is not possible. Too little data carries high false positive risk.
+- 3 months to less than 1 year: uses the Recent 3 weeks (R) and Recent 3 months (Q) windows.
+- 1 year or more: uses all windows — Recent 3 weeks (R), Recent 3 months (Q), and same period last year (SY, LY).
+
+Next, windows and segments are separated based on whether holidays are included in the detection period.
+If the detection period:
+- Does not include holidays: holidays are also excluded from historical periods to prevent baseline contamination.
+- Includes holidays: historical periods are labeled by day-of-week and holiday status for same-segment comparison.
+- Includes lunar holidays: additional historical periods containing those lunar holidays are retrieved and labeled.
+
+Finally, weights were adjusted considering the client domain specifics and store characteristics.
+Generally, giving large weight to recent trends would be correct, but since the client's stores aren't in high daily-volatility industries (like grocery or F&B), mid-term patterns matter more than noise from recent days.
+So weights were set to ensure mid-term periods maintain sufficient representation rather than being excessively pulled by short-term fluctuations. (e.g., R: 0.5, Q: 0.5)
+
+Notably, thresholds were also set asymmetrically reflecting domain specifics.
+Through operational experience, sudden decreases had far higher severity than sudden increases from an operational standpoint.
+Therefore, lower thresholds were set tighter to respond more sensitively to decreases.
+
+<img src="/images/ANO result.png" alt="KPI anomaly detection result" style={{ width: "100%", borderRadius: "8px" }} />
+
+---
+
+## 7. How I Designed the Post-Detection Flow
+
+### 7-1. Camera x video-level drill-down
+
+When coverage or visitor count dropped sharply at a specific store, instead of searching through all videos, we needed to decompose data to immediately identify which camera at which time period had concentrated changes.
+So I created raw data tables segmenting each metric by camera×video unit, made downloadable as Excel files from mAsh for easy use by relevant personnel.
+
+Thanks to this structure, instead of full GT review, specific cameras at specific time periods could be focused on for root cause investigation.
+Field issues, camera angle changes, lighting problems, and installation status were quickly revealed at this level.
+
+### 7-2. Visitor-level drill-down
+
+Using the same approach as camera×video level, raw data tables segmenting each metric by visitor unit were made downloadable from mAsh.
+
+At the visitor level, model-specific problems like ID switching, tracking breaks, and gender/age prediction instability could be seen more concretely.
+Based on this, PM, DA, and development teams could gather to discuss "what type of error occurred."
+
+<img src="/images/ANO raw_data.png" alt="KPI anomaly granular data" style={{ width: "100%", borderRadius: "8px" }} />
+
+Through these two axes, the system didn't end at "today's numbers look abnormal" but could lead to practical operational action:
+**"Let's look at this camera's this time period, or this visitor case first."**
+
+---
+
+## 8. How the Operational Dashboard and Reporting Were Built
+
+The operational deliverable was a Streamlit-based monitoring dashboard and daily reporting structure.
+Visualization elements were designed simply so operators could grasp the situation within 30 seconds.
+
+* Actual values: current metric trends
+* Baseline: comparison reference
+* Upper/lower boundaries: acceptable range
+* Anomaly markers: detection point indicators
+
+For segments where graphs alone weren't sufficient, box plots were placed alongside to intuitively show how exceptional the current value is within the historical distribution.
+The bottom table organized date, actual value, baseline, deviation, deviation rate, and status so operators could make concrete judgments rather than staying with a vague impression of "something's off."
+
+<img src="/images/ANO result.png" alt="KPI anomaly detection result" style={{ width: "100%", borderRadius: "8px" }} />
+
+Afterwards, I collaborated with the development team to build an alert automation pipeline using n8n.
+Every morning, anomaly detection runs automatically for that day and sends Slack notifications.
+Anomaly detection results are then documented in Notion.
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+  <img src="/images/ANO result2.png" alt="Anomaly detection result 2" style={{ width: "100%", borderRadius: "8px" }} />
+  <img src="/images/ANO result3.png" alt="Anomaly detection result 3" style={{ width: "100%", borderRadius: "8px" }} />
+</div>
+
+---
+
+## 9. Performance and Impact
+
+The most direct achievement of this project was being able to show the client a structure of "we are managing risk" in a situation of data distrust.
+At client meetings, rather than presenting a single accuracy number, we demonstrated what criteria are used to detect anomalies and what flow is used for response.
+The client took note that this system actually operates daily, and ultimately **extended the contract** to continue observing our accuracy improvement research.
+
+Internally, the operational effect was even clearer.
+
+### Organizational Perspective Changes
+
+Previously, even when data anomalies were suspected, PMs had difficulty identifying root causes on their own. Without knowledge of internal data pipelines and operation methods, they had no choice but to inquire with relevant engineers and wait.
+After this system was introduced, PMs could first check which store, which date, and which metric was fluctuating before initiating communication.
+The AI development team could also approach more quickly based on specific modules and specific cases, instead of debugging broadly without hypotheses.
+
+Additionally, as the escalation process of daily anomaly review, severity judgment, and root cause investigation was incorporated into regular operational flows that include assistant staff,
+this system became established not as a one-time analysis but as actual operational infrastructure.
+
+---
+
+## 10. Significance of This Project
+
+This project is less about building an anomaly detection algorithm and more about **designing a system that operationally manages trust in an AI service**.
+
+Two points were most important.
+
+First, **I created a realistic structure for handling problems in an environment where complete ground truth is unavailable.**
+Even without sufficient Ground Truth, if you build a system that can monitor and respond to quality risks, the service can continue operating.
+
+Second, **I transformed quality issues from a development-team-only concern into a shared organizational language.**
+This system functioned as a common standard connecting client communication, PM operations, AI debugging, and field response. In this sense, it was closer to operational infrastructure than a simple analysis tool.
+
+---
+
+## 11. Limitations & Retrospective
+
+Clear limitations existed.
+- With only ~8 months of operational history, it was difficult to say all seasonal patterns were sufficiently learned.
+- While holiday corrections were implemented, special events like sales or promotions required pre-registration — missing this information could generate false positives.
+- Early detection cases weren't systematically recorded, so I couldn't quantitatively demonstrate what costs the detection actually prevented.
+
+If I were to do this again, I would address three things first:
+
+- Build an external event calendar incorporating sales/promotions/weather data more quickly.
+- Design a feedback loop from the start that records post-detection actions and outcomes to leave quantitative impact evidence.
+- Accumulate false positive/negative cases more systematically to refine severity criteria and thresholds.
+
+One thing became clear through this project.
+Trust in AI services cannot be maintained by a single model performance number alone. **An operational system that can quickly detect, explain, and respond to problems** must exist alongside it.
+
+---
+
+## 12. Tech Stack & Implementation
+
+**Tech Stack**
+
+* Python
+* Pandas
+* Streamlit
+* Slack API
+* Notion API
+* n8n
+
+**Core Implementation Elements**
+
+* Multi-window (R/Q/SY/LY) based detection logic
+* Day-of-week/holiday/lunar segment alignment
+* Asymmetric threshold design
+* 4-level severity classification
+* Box plot distribution comparison visualization
+* Camera×video / visitor-level drill-down
+* Slack notification and Notion documentation automation
+
+---
+
+*E.O.D*
